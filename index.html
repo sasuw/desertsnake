@@ -6,11 +6,44 @@
             canvas {background: black}
         </style>
 
+        <script src="https://unpkg.com/tone"></script>
+        <script src="js/tone.js"></script>
         <script src="js/main.js"></script>
+        
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+            table td, table th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 5px;
+            }
+        </style>
     </head>
         
     <body onload="init();">
         <canvas id="myCanvas" width="400" height="400">
         </canvas>
+        <br>
+        <button id="playBtn">Play</button>
+        <br><br>
+        <table style="border: 1px solid black; font-family: monospace;">
+            <tr>
+                <th>Object</th>
+                <th>X</th>
+                <th>Y</th>
+            </tr>
+            <tr>
+                <td>Snake head</td>
+                <td id="shx">&nbsp;</td>
+                <td id="shy">&nbsp;</td>
+            </tr>
+            <tr>
+                <td>Food</td>
+                <td id="fx">&nbsp;</td>
+                <td id="fy">&nbsp;</td>
+            </tr>
+        </table>
     </body>
 </html>
