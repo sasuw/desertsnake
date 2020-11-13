@@ -11,6 +11,10 @@
         <script src="js/main.js"></script>
         
         <style>
+            #debugTable{
+                display: block;
+            }
+
             table {
                 border-collapse: collapse;
             }
@@ -18,17 +22,31 @@
                 border: 1px solid black;
                 text-align: left;
                 padding: 5px;
+                font-family: monospace;
             }
         </style>
     </head>
         
     <body onload="init();">
+        <table id="scoreTable">
+            <tr>
+                <th>Score</th>
+                <th>Round</th>
+                <th>Food to catch</th>
+            </tr>
+            <tr>
+                <td id="score">&nbsp;</td>
+                <td id="round">&nbsp;</td>
+                <td id="ftc">&nbsp;</td>
+            </tr>
+        </table>
+        <br>
         <canvas id="myCanvas" width="400" height="400">
         </canvas>
         <br>
         <button id="playBtn">Play</button>
         <br><br>
-        <table style="border: 1px solid black; font-family: monospace;">
+        <table id="debugTable">
             <tr>
                 <th>Object</th>
                 <th>X</th>

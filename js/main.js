@@ -16,31 +16,59 @@ const GameStates = {
 };
 var gameState = GameStates.STOPPED;
 
-const LOOP_DELAY = 10;
-const MOVEMENT_EVERY_N_LOOPS = 15;
-const SOUND_LENGTH_MS = MOVEMENT_EVERY_N_LOOPS * LOOP_DELAY / 1000 * 4;
+var movementEveryNLoops = 30;
+
+const LOOP_DELAY = 5;
+const SOUND_LENGTH_MS = movementEveryNLoops * LOOP_DELAY / 1000 * 4;
 
 //snake coordinates, where x[0], y[0] is the snake's head position
-var x = new Array(POINT_AMOUNT); 
-var y = new Array(POINT_AMOUNT);
+var x = [];
+var y = [];
 
 //canvas and canvas context
 var canvas, ctx;
+
+var score = 0; //increases with caught food, advanced rounds and passed time, with a multiplier for snake length
+var round = 1;
+var foodToCatchIncrement = 5;
+var foodToCatch = foodToCatchIncrement;
 
 var shxEl, shyEl, fx, fy;
 function init(){
     initCanvas();
 
     loadImages();
-    initSnake();
+    if(round < 2){
+        initSnake();
+    }
     replaceFood();
 
     initEventHandlers();
+    initInfoTable();
+    initDebugTable();
+}
 
-    shxEl = document.getElementById('shx');
-    shyEl = document.getElementById('shy');
-    fx = document.getElementById('fx');
-    fy = document.getElementById('fy');
+function initDebugTable(){
+    shxEl = document.getElementById('shx'); //snake head x
+    shyEl = document.getElementById('shy'); //snake head y
+    fx = document.getElementById('fx'); //food x
+    fy = document.getElementById('fy'); //food y
+}
+
+function initNewRound(){
+    round++;
+    foodToCatchIncrement++;
+    foodToCatch = foodToCatchIncrement;
+    movementEveryNLoops--;
+    synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'E6'], SOUND_LENGTH_MS);
+    //setTimeout(init, 5000);
+    init();
+}
+
+function initInfoTable(){
+    updateScore();
+    updateRounds();
+    updateFoodToCatch();
 }
 
 function initCanvas(){
@@ -54,6 +82,13 @@ function initCanvas(){
 }
 
 function paintGrid(){
+    let bg = new Image();
+    bg.src = 'img/hintergrund.svg';    
+
+    var ptrn = ctx.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+    ctx.fillStyle = ptrn;
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // context.fillRect(x, y, width, height);
+
     ctx.beginPath();
 
     let i;
@@ -83,11 +118,19 @@ function initEventHandlers(){
 
 var toneInitialized = false;
 async function startGame(){
+    score = 0;
+    round = 1;
+    foodToCatchIncrement = 1;
+    foodToCatch = foodToCatchIncrement;
+
     if(!toneInitialized){
         await Tone.start();
         toneInitialized = true;
     }
+    round = 1;
+    snakeAlive = true;
     gameState = GameStates.STARTED;
+    init();
     mainGameLoop();
 }
 
@@ -116,24 +159,25 @@ function playTones(){
     playTone(9 - mc.y, 3, ToneType.y, 1);
 
     if(food_x === x[0] && food_y !== y[0] && y[0] % 40 === 0){
-        let foodDistance = Math.abs(x[0] - food_x);
-        console.log('x: ' + x[0] + ', foodDistance: ' + foodDistance);
-        synthSpecial.volume.value = -foodDistance / (AREA_WIDTH_PX / 16); //-16 dB is the lowest usable volume
-        console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
-        synthSpecial.triggerAttackRelease('C3', SOUND_LENGTH_MS * 2);
+        playApproximationTone(y[0], food_y);
     }
     if(food_y === y[0] && food_x !== x[0] && x[0] % 40 === 0){
-        let foodDistance = Math.abs(x[0] - food_x);
-        console.log('y: ' + y[0] + ', foodDistance: ' + foodDistance);  
-        synthSpecial.volume.value = -foodDistance / (AREA_WIDTH_PX / 16); //-16 dB is the lowest usable volume
-        console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
-        synthSpecial.triggerAttackRelease('C5', SOUND_LENGTH_MS * 2);
+        playApproximationTone(x[0], food_x);
     }
 
     if(food_y === y[0] && food_x === x[0]){
+        //food found
         synthSpecial.volume.value = 0;
         synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'B5'], SOUND_LENGTH_MS);
     }
+}
+
+function playApproximationTone(axisSnakeCoordinate, axisFoodCoordinate, ){
+    let foodDistance = Math.abs(axisSnakeCoordinate - axisFoodCoordinate);
+    console.log('x: ' + x[0] + ', foodDistance: ' + foodDistance);
+    synthSpecial.volume.value = -foodDistance / (AREA_WIDTH_PX / 32);
+    console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
+    synthSpecial.triggerAttackRelease('C3', SOUND_LENGTH_MS * 2);
 }
 
 var previousNote = {};
@@ -161,7 +205,7 @@ function mainGameLoop(){
         checkFoodFound();
         checkCollision();
 
-        if(++loopCounter % MOVEMENT_EVERY_N_LOOPS === 0){
+        if(++loopCounter % movementEveryNLoops === 0){
             console.log(loopCounter++);
             //decoupling movement from key detection guarantees better responsivness
             moveSnake();
@@ -169,11 +213,24 @@ function mainGameLoop(){
             playTones();
         }
         drawCanvas();
-
+        score = Math.floor((score + loopCounter) / 100);
+        updateScore();
         setTimeout(mainGameLoop, LOOP_DELAY);
     }else if(snakeAlive && gameState === GameStates.PAUSED){
         setTimeout(mainGameLoop, 200);
     }
+}
+
+function updateRounds(){
+    document.getElementById('round').textContent = round;
+}
+
+function updateFoodToCatch(){
+    document.getElementById('ftc').textContent = foodToCatch;
+}
+
+function updateScore(){
+    document.getElementById('score').textContent = score;
 }
 
 function Coordinates(x, y){
@@ -191,28 +248,80 @@ function getMusicCoordinates(){
 }
 
 function printLoopDebugInfo(){
-    shxEl.innerHTML = x[0];
-    shyEl.innerHTML = y[0];
-    fx.innerHTML = food_x;
-    fy.innerHTML = food_y;
+    shxEl.textContent = x[0];
+    shyEl.textContent = y[0];
+    fx.textContent = food_x;
+    fy.textContent = food_y;
 }
 
 //graphical elements
-var snakehead, snakebody, snakefood;
+var snaketail = [];
+var snakehead = [];
+var snakebody = [];
+var snakefood = [];
 
 function loadImages(){
-    snakehead = new Image();
-    snakehead.src = 'img/snakehead.png';    
+    //Snake tail
+    snaketail[Direction.UP] = new Image();
+    snaketail[Direction.UP].src = 'img/schwanz-oben.svg';    
+
+    snaketail[Direction.RIGHT] = new Image();
+    snaketail[Direction.RIGHT].src = 'img/schwanz-rechts.svg';
     
-    snakebody = new Image();
-    snakebody.src = 'img/snakebody.png'; 
+    snaketail[Direction.DOWN] = new Image();
+    snaketail[Direction.DOWN].src = 'img/schwanz-unten.svg';    
+
+    snaketail[Direction.LEFT] = new Image();
+    snaketail[Direction.LEFT].src = 'img/schwanz-links.svg';
+
+    //Snake head
+    snakehead[Direction.UP] = new Image();
+    snakehead[Direction.UP].src = 'img/kopf-oben.svg';    
+
+    snakehead[Direction.RIGHT] = new Image();
+    snakehead[Direction.RIGHT].src = 'img/kopf-rechts.svg';
     
+    snakehead[Direction.DOWN] = new Image();
+    snakehead[Direction.DOWN].src = 'img/kopf-unten.svg';    
+
+    snakehead[Direction.LEFT] = new Image();
+    snakehead[Direction.LEFT].src = 'img/kopf-links.svg';
+
+    //Snake body
+    snakebody[Direction.UP] = new Image();
+    snakebody[Direction.UP].src = 'img/koerper-vertikal.svg';    
+
+    snakebody[Direction.RIGHT] = new Image();
+    snakebody[Direction.RIGHT].src = 'img/koerper-horizontal.svg';
+
+    snakebody[Direction.DOWN] = new Image();
+    snakebody[Direction.DOWN].src = 'img/koerper-vertikal.svg';    
+
+    snakebody[Direction.LEFT] = new Image();
+    snakebody[Direction.LEFT].src = 'img/koerper-horizontal.svg';
+
+    //Snake corner part
+    snakebody[Direction.CORNER_NW] = new Image();
+    snakebody[Direction.UP].src = 'img/eckstueck-nw.svg';    
+
+    snakebody[Direction.CORNER_NE] = new Image();
+    snakebody[Direction.RIGHT].src = 'img/eckstueck-no.svg';
+
+    snakebody[Direction.CORNER_SE] = new Image();
+    snakebody[Direction.DOWN].src = 'img/eckstueck-so.svg';    
+
+    snakebody[Direction.CORNER_SW] = new Image();
+    snakebody[Direction.LEFT].src = 'img/eckstueck-sw.svg';
+    
+    //Snake food
     snakefood = new Image();
-    snakefood.src = 'img/snakefood.png';
+    snakefood.src = 'img/wurst.svg';
 }
 
-var snakeLength = 3;
+var snakeLength = 5;
 function initSnake(){
+    x = [];
+    y = [];
     x[0] = AREA_WIDTH_PX / 2;
     y[0] = AREA_HEIGHT_PX / 2;
 }
@@ -223,6 +332,13 @@ function checkFoodFound(){
     if(food_x === x[0] && food_y === y[0]){
         snakeLength++;
         replaceFood();
+        foodToCatch--;
+        score = score + 3 * Math.ceil(round / 5);
+        updateFoodToCatch();
+        updateScore();
+        if(foodToCatch == 0){
+            initNewRound();
+        }
     }
 }
 
@@ -235,7 +351,14 @@ const Direction = {
     LEFT: 1,
     UP: 2,
     RIGHT: 3,
-    DOWN: 4
+    DOWN: 4,
+    HORIZONTAL: 5,
+    VERTICAL: 6,
+    UNKNOWN: 7,
+    CORNER_NW: 8,
+    CORNER_NE: 9,
+    CORNER_SE: 10,
+    CORNER_SW: 11
 }
 
 var currentDirection = Direction.DOWN;
@@ -313,15 +436,79 @@ function drawCanvas(){
         ctx.drawImage(snakefood, food_x, food_y, scaledImageSize, scaledImageSize);
 
         for (var i = 0; i < snakeLength; i++) {
-            if (i == 0) {
-                ctx.drawImage(snakehead, x[i], y[i], scaledImageSize, scaledImageSize);
+            let cd = getCoordinateDirection();
+            if (i === 0) {
+                ctx.drawImage(snakehead[currentDirection], x[i], y[i], scaledImageSize, scaledImageSize);
+            } else if (i === (snakeLength -1)) {
+                ctx.drawImage(snaketail[cd], x[i], y[i], scaledImageSize, scaledImageSize);
             } else {
-                ctx.drawImage(snakebody, x[i], y[i], scaledImageSize, scaledImageSize);
+                if (cd > Direction.UNKNOWN){
+                    //corner case (literally)
+                    ctx.drawImage(snakebody[cd], x[i], y[i], scaledImageSize, scaledImageSize);
+                }else if(cd === Direction.UP || cd === Direction.DOWN){
+                    ctx.drawImage(snakebody[Direction.UP], x[i], y[i], scaledImageSize, scaledImageSize);
+                }else{
+                    ctx.drawImage(snakebody[Direction.RIGHT], x[i], y[i], scaledImageSize, scaledImageSize);
+                }
             }
         }    
     } else {
         gameOver();
     }    
+}
+
+/**
+ * When given the x/y array index, this function returns either
+ * Direction.VERTICAL
+ * or
+ * Direction.HORIZONTAL
+ * depending on the orientation of the given coordinate.
+ * 
+ * @param {*} index 
+ */
+function getCoordinateDirection(index){
+    if(index == 0){
+        if(x[1] === x[0]){
+            if(y[1] > y[0]){
+                return Direction.DOWN;
+            }else{
+                return Direction.UP;
+            }
+        }else{
+            if(x[1] > x[0]){
+                return Direction.RIGHT;
+            }else{
+                return Direction.LEFT;
+            }
+        }
+    }
+    if(x[index] === x[index - 1]){
+        if(y[index] > y[index - 1]){
+            return Direction.DOWN;
+        }else{
+            return Direction.UP;
+        }
+    }else if(y[index] === y[index - 1]){
+        if(x[index] > x[index - 1]){
+            return Direction.RIGHT;
+        }else{
+            return Direction.LEFT;
+        }
+    }else if(x[index] > x[index - 1]){
+        if(y[index] > y[index - 1]){
+            return Direction.CORNER_NW;
+        }else{
+            return Direction.CORNER_NE;
+        }
+    }else{
+        if(x[index] > x[index - 1]){
+            return Direction.CORNER_SW;
+        }else{
+            return Direction.CORNER_SE;
+        }
+    }
+
+
 }
 
 function gameOver() {
