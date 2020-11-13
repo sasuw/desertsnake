@@ -17,32 +17,32 @@ ToneMapper.map = function(number, startOctave){
     var octave = startOctave;
     switch(number){
         case 1:
-            tone = 'C';
-            break;
-        case 2:
-            tone = 'D';
-            break;
-        case 3:
             tone = 'E';
             break;
-        case 4:
+        case 2:
             tone = 'F';
             break;
-        case 5:
-            tone = 'G';
+        case 3:
+            tone = 'G#';
             break;
-        case 6:
+        case 4:
             tone = 'A';
             break;
-        case 7:
+        case 5:
             tone = 'B';
             break;
-        case 8:
+        case 6:
             tone = 'C';
+            break;
+        case 7:
+            tone = 'D#';
+            break;
+        case 8:
+            tone = 'E';
             octave = startOctave + 1;
             break;
         default:
-            console.error('ToneMapper.map: unknown number');
+            console.error('ToneMapper.map: unknown number ' + number);
             break;
     }
 

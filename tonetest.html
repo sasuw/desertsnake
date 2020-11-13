@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ToneTest</title>
+        <script src="https://unpkg.com/tone"></script>
+        <script>
+            var synthX;
+            async function play(){
+                await Tone.start();
+                synthX = new Tone.AMSynth().toDestination();
+                synthX.triggerAttackRelease('C5', 100);
+            }
+        </script>
+    </head>
+        
+    <body>
+        <button id="playButton" onclick="play()">Play</button>
+    </body>
+</html>
