@@ -1,5 +1,5 @@
-const AREA_WIDTH = 40;
-const AREA_HEIGHT = 40;
+const AREA_WIDTH = 20;
+const AREA_HEIGHT = 20;
 
 const POINT_SIZE = 10;
 
@@ -8,7 +8,7 @@ const AREA_HEIGHT_PX = AREA_HEIGHT * POINT_SIZE;
 
 const POINT_AMOUNT = AREA_WIDTH * AREA_HEIGHT;
 
-const LOOP_DELAY = 50;
+const LOOP_DELAY = 10;
 
 //snake coordinates, where x[0], y[0] is the snake's head position
 var x = new Array(POINT_AMOUNT); 
@@ -21,20 +21,27 @@ function init(){
     canvas = document.getElementById('myCanvas');
     ctx = canvas.getContext('2d');
 
+    canvas.width = AREA_WIDTH_PX;
+    canvas.height = AREA_HEIGHT_PX;
+
     loadImages();
     initSnake();
     replaceFood();
-    //setTimeout(mainGameLoop, LOOP_DELAY);
     mainGameLoop();
 }
 
 var snakeAlive = true;
+var loopCounter = 0;
 function mainGameLoop(){
     if(snakeAlive){
         checkFoodFound();
         checkCollision();
 
-        moveSnake();
+        console.log(loopCounter++);
+        if(loopCounter % 10 === 0){
+            //decoupling movement from key detection guarantees better responsivness
+            moveSnake();
+        }
         drawCanvas();
 
         setTimeout(mainGameLoop, LOOP_DELAY);
@@ -114,18 +121,21 @@ function checkCollision(){
     snakeAlive = x[0] > 0 && x[0] < AREA_WIDTH_PX && y[0] > 0 && y[0] < AREA_HEIGHT_PX; 
 }
 
+const KEY_LEFT = 37;
+const KEY_RIGHT = 39;
+
 onkeydown = function(e) {
-    var key = e.code;   
+    var key = e.keyCode; //for performance reasons the deprecated keyCode is used
     console.log(key);
     
-    if (key === 'ArrowLeft') {
+    if (key === KEY_LEFT) {
         currentDirection = currentDirection - 1;
         if(currentDirection === 0){
             currentDirection = 4;
         }
     }
 
-    if (key === 'ArrowRight') {
+    if (key === KEY_RIGHT) {
         currentDirection = currentDirection + 1;
         if(currentDirection === 5){
             currentDirection = 1;
