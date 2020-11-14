@@ -86,36 +86,44 @@ function initCanvas(){
 }
 
 function paintBackground(){
-    let bg = new Image();
-    bg.src = 'img/hintergrund.svg';    
+    try{
+        let bg = new Image();
+        bg.src = 'img/hintergrund.png';    
 
-    var ptrn = ctx.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
-    ctx.fillStyle = ptrn;
-    ctx.fillRect(0, 0, canvas.width, canvas.height); // context.fillRect(x, y, width, height);
+        var ptrn = ctx.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+        ctx.fillStyle = ptrn;
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // context.fillRect(x, y, width, height);
+    }catch(error){
+        console.log('paintBackground ERROR: ' + error);
+    }
 }
 
 function paintGrid(){
-    if(!doPaintGrid){
-        return;
-    }
+    try{
+        if(!doPaintGrid){
+            return;
+        }
 
-    ctx.beginPath();
+        let i;
+        for(i = 1; i < 9; i++){
+            ctx.beginPath();
+            let lineX = AREA_WIDTH_PX / 8 * i;
+            ctx.moveTo(lineX, 0);
+            ctx.lineTo(lineX, AREA_HEIGHT_PX);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.stroke();
+        }
 
-    let i;
-    for(i = 1; i < 9; i++){
-        let lineX = AREA_WIDTH_PX / 8 * i;
-        ctx.moveTo(lineX, 0);
-        ctx.lineTo(lineX, AREA_HEIGHT_PX);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.stroke();
-    }
-
-    for(i = 1; i < 9; i++){
-        let lineY = AREA_HEIGHT_PX / 8 * i;
-        ctx.moveTo(0, lineY);
-        ctx.lineTo(AREA_WIDTH_PX, lineY);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.stroke();
+        for(i = 1; i < 9; i++){
+            ctx.beginPath();
+            let lineY = AREA_HEIGHT_PX / 8 * i;
+            ctx.moveTo(0, lineY);
+            ctx.lineTo(AREA_WIDTH_PX, lineY);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.stroke();
+        }
+    }catch(error){
+        console.log('paintGrid ERROR: ' + error);
     }
 }
 
@@ -163,7 +171,7 @@ var ToneType = {
 }
 function playTones(){
     var mc = getMusicCoordinates();
-    console.log('mc: ' + mc.toString());
+    //console.log('mc: ' + mc.toString());
 
     playTone(mc.x, 5, ToneType.x, 4);
     playTone(9 - mc.y, 3, ToneType.y, 1);
@@ -184,21 +192,21 @@ function playTones(){
 
 function playApproximationTone(axisSnakeCoordinate, axisFoodCoordinate, ){
     let foodDistance = Math.abs(axisSnakeCoordinate - axisFoodCoordinate);
-    console.log('x: ' + x[0] + ', foodDistance: ' + foodDistance);
+    //console.log('x: ' + x[0] + ', foodDistance: ' + foodDistance);
     synthSpecial.volume.value = -foodDistance / (AREA_WIDTH_PX / 32);
-    console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
+    //console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
     synthSpecial.triggerAttackRelease('C3', SOUND_LENGTH_MS * 2);
 }
 
 var previousNote = {};
 function playTone(noteNumber, startOctave, toneType, length){
-    console.log('playTone started with noteNumber ' +  noteNumber + ', startOctave ' + startOctave + ', toneType ' + toneType + ', length ' + length);
+    //console.log('playTone started with noteNumber ' +  noteNumber + ', startOctave ' + startOctave + ', toneType ' + toneType + ', length ' + length);
     var note = ToneMapper.map(noteNumber, startOctave);
     if(previousNote[toneType] == note){
         return;
     }
     previousNote[toneType] = note;
-    console.log('note.' + toneType + ': ' + note);
+    //console.log('note.' + toneType + ': ' + note);
 
     let synth = synthX;
     if(toneType = ToneType.y){
@@ -216,7 +224,7 @@ function mainGameLoop(){
         checkCollision();
 
         if(++loopCounter % movementEveryNLoops === 0){
-            console.log(loopCounter++);
+            //console.log(loopCounter++);
             //decoupling movement from key detection guarantees better responsivness
             moveSnake();
             //printLoopDebugInfo();
@@ -409,7 +417,7 @@ const KEY_ENTER = 13;
 
 onkeydown = function(e) {
     var key = e.keyCode; //for performance reasons the deprecated keyCode is used
-    console.log(key);
+    //console.log(key);
     
     if (key === KEY_LEFT) {
         currentDirection = currentDirection - 1;
@@ -440,44 +448,48 @@ onkeydown = function(e) {
 
 var prevCd = null;
 function drawCanvas(){
-    ctx.clearRect(0, 0, AREA_WIDTH_PX, AREA_HEIGHT_PX);
-    paintGrid();
-    paintBackground();
+    try{
+        ctx.clearRect(0, 0, AREA_WIDTH_PX, AREA_HEIGHT_PX);
+        paintGrid();
+        paintBackground();
 
-    var scaledImageSize = POINT_SIZE;
+        var scaledImageSize = POINT_SIZE;
 
-    if (snakeAlive) {
-        ctx.drawImage(snakefood, food_x, food_y, scaledImageSize, scaledImageSize);
+        if (snakeAlive) {
+            ctx.drawImage(snakefood, food_x, food_y, scaledImageSize, scaledImageSize);
 
-        for (var i = snakeLength - 1; i > -1; i--) {
-            let cd = getCoordinateDirection(i);
-            prevCd = cd;
-            if (i === 0) {
-                ctx.drawImage(snakehead[currentDirection], x[i], y[i], scaledImageSize, scaledImageSize);
-            } else if (i === (snakeLength -1)) {
-                let snakeTailDirection = cd + 2;
-                if(snakeTailDirection > 4){
-                    snakeTailDirection = snakeTailDirection - 4;
+            for (var i = snakeLength - 1; i > -1; i--) {
+                let cd = getCoordinateDirection(i);
+                prevCd = cd;
+                if (i === 0) {
+                    ctx.drawImage(snakehead[currentDirection], x[i], y[i], scaledImageSize, scaledImageSize);
+                } else if (i === (snakeLength -1)) {
+                    let snakeTailDirection = cd + 2;
+                    if(snakeTailDirection > 4){
+                        snakeTailDirection = snakeTailDirection - 4;
+                    }
+                    let snaketailImg = snaketail[snakeTailDirection];
+                    if(snaketailImg == null){
+                        console.log('snaketailImg not found');
+                    } 
+                    ctx.drawImage(snaketail[snakeTailDirection], x[i], y[i], scaledImageSize, scaledImageSize);
+                } else {
+                    if (cd > Direction.UNKNOWN){
+                        //corner case (literally)
+                        ctx.drawImage(snakebody[cd], x[i], y[i], scaledImageSize, scaledImageSize);
+                    }else if(cd === Direction.UP || cd === Direction.DOWN){
+                        ctx.drawImage(snakebody[Direction.UP], x[i], y[i], scaledImageSize, scaledImageSize);
+                    }else{
+                        ctx.drawImage(snakebody[Direction.RIGHT], x[i], y[i], scaledImageSize, scaledImageSize);
+                    }
                 }
-                let snaketailImg = snaketail[snakeTailDirection];
-                if(snaketailImg == null){
-                    console.log('snaketailImg not found');
-                } 
-                ctx.drawImage(snaketail[snakeTailDirection], x[i], y[i], scaledImageSize, scaledImageSize);
-            } else {
-                if (cd > Direction.UNKNOWN){
-                    //corner case (literally)
-                    ctx.drawImage(snakebody[cd], x[i], y[i], scaledImageSize, scaledImageSize);
-                }else if(cd === Direction.UP || cd === Direction.DOWN){
-                    ctx.drawImage(snakebody[Direction.UP], x[i], y[i], scaledImageSize, scaledImageSize);
-                }else{
-                    ctx.drawImage(snakebody[Direction.RIGHT], x[i], y[i], scaledImageSize, scaledImageSize);
-                }
-            }
-        }    
-    } else {
-        gameOver();
-    }    
+            }    
+        } else {
+            gameOver();
+        }
+    }catch(error){
+        console.log('drawCanvas ERROR: ' + error);
+    }
 }
 
 
