@@ -191,29 +191,37 @@ function playTones(){
 }
 
 function playApproximationTone(axisSnakeCoordinate, axisFoodCoordinate, ){
-    let foodDistance = Math.abs(axisSnakeCoordinate - axisFoodCoordinate);
-    //console.log('x: ' + x[0] + ', foodDistance: ' + foodDistance);
-    synthSpecial.volume.value = -foodDistance / (AREA_WIDTH_PX / 32);
-    //console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
-    synthSpecial.triggerAttackRelease('C3', SOUND_LENGTH_MS * 2);
+    try{
+        let foodDistance = Math.abs(axisSnakeCoordinate - axisFoodCoordinate);
+        //console.log('x: ' + x[0] + ', foodDistance: ' + foodDistance);
+        synthSpecial.volume.value = -foodDistance / (AREA_WIDTH_PX / 32);
+        //console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
+        synthSpecial.triggerAttackRelease('C3', SOUND_LENGTH_MS * 2);
+    }catch(error){
+        console.error('playTone error: ' + error); //probably in Firefox
+    }
 }
 
 var previousNote = {};
 function playTone(noteNumber, startOctave, toneType, length){
-    //console.log('playTone started with noteNumber ' +  noteNumber + ', startOctave ' + startOctave + ', toneType ' + toneType + ', length ' + length);
-    var note = ToneMapper.map(noteNumber, startOctave);
-    if(previousNote[toneType] == note){
-        return;
-    }
-    previousNote[toneType] = note;
-    //console.log('note.' + toneType + ': ' + note);
+    try{
+        //console.log('playTone started with noteNumber ' +  noteNumber + ', startOctave ' + startOctave + ', toneType ' + toneType + ', length ' + length);
+        var note = ToneMapper.map(noteNumber, startOctave);
+        if(previousNote[toneType] == note){
+            return;
+        }
+        previousNote[toneType] = note;
+        //console.log('note.' + toneType + ': ' + note);
 
-    let synth = synthX;
-    if(toneType = ToneType.y){
-        synth = synthY;
+        let synth = synthX;
+        if(toneType = ToneType.y){
+            synth = synthY;
+        }
+        //synth.triggerAttackRelease(note, length + 'n');
+        synth.triggerAttackRelease(note, SOUND_LENGTH_MS);
+    }catch(error){
+        console.error('playTone error: ' + error); //probably in Firefox
     }
-    //synth.triggerAttackRelease(note, length + 'n');
-    synth.triggerAttackRelease(note, SOUND_LENGTH_MS);
 }
 
 var snakeAlive = true;
