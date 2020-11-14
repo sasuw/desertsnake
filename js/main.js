@@ -1,5 +1,5 @@
 const BASE_POINT_SIZE = 10;
-const POINT_SIZE = 20;
+const POINT_SIZE = 15;
 
 const AREA_WIDTH = 32;
 const AREA_HEIGHT = 32;
@@ -16,7 +16,7 @@ const GameStates = {
 };
 var gameState = GameStates.STOPPED;
 
-var movementEveryNLoops = 30;
+var movementEveryNLoops = 28;
 
 const LOOP_DELAY = 5;
 const SOUND_LENGTH_MS = movementEveryNLoops * LOOP_DELAY / 1000 * 4;
@@ -33,6 +33,8 @@ var round = 1;
 var foodToCatchIncrement = 5;
 var foodToCatch = foodToCatchIncrement;
 var goingClockwise = null;
+
+var doPaintGrid = false;
 
 var shxEl, shyEl, fx, fy;
 function init(){
@@ -60,7 +62,7 @@ function initNewRound(){
     round++;
     foodToCatchIncrement++;
     foodToCatch = foodToCatchIncrement;
-    movementEveryNLoops--;
+    movementEveryNLoops = movementEveryNLoops - 2;
     synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'E6'], SOUND_LENGTH_MS);
     //setTimeout(init, 5000);
     init();
@@ -80,15 +82,22 @@ function initCanvas(){
     canvas.height = AREA_HEIGHT_PX;
 
     paintGrid();
+    paintBackground();
 }
 
-function paintGrid(){
+function paintBackground(){
     let bg = new Image();
     bg.src = 'img/hintergrund.svg';    
 
     var ptrn = ctx.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
     ctx.fillStyle = ptrn;
     ctx.fillRect(0, 0, canvas.width, canvas.height); // context.fillRect(x, y, width, height);
+}
+
+function paintGrid(){
+    if(!doPaintGrid){
+        return;
+    }
 
     ctx.beginPath();
 
@@ -121,7 +130,7 @@ var toneInitialized = false;
 async function startGame(){
     score = 0;
     round = 1;
-    foodToCatchIncrement = 1;
+    foodToCatchIncrement = 3;
     foodToCatch = foodToCatchIncrement;
 
     if(!toneInitialized){
@@ -159,10 +168,10 @@ function playTones(){
     playTone(mc.x, 5, ToneType.x, 4);
     playTone(9 - mc.y, 3, ToneType.y, 1);
 
-    if(food_x === x[0] && food_y !== y[0] && y[0] % 40 === 0){
+    if(food_x === x[0] && food_y !== y[0] && y[0] % 1 === 0){
         playApproximationTone(y[0], food_y);
     }
-    if(food_y === y[0] && food_x !== x[0] && x[0] % 40 === 0){
+    if(food_y === y[0] && food_x !== x[0] && x[0] % 1 === 0){
         playApproximationTone(x[0], food_x);
     }
 
@@ -210,7 +219,7 @@ function mainGameLoop(){
             console.log(loopCounter++);
             //decoupling movement from key detection guarantees better responsivness
             moveSnake();
-            printLoopDebugInfo();
+            //printLoopDebugInfo();
             playTones();
         }
         drawCanvas();
@@ -319,7 +328,7 @@ function loadImages(){
     snakefood.src = 'img/wurst.svg';
 }
 
-var snakeLength = 5;
+var snakeLength = 3;
 function initSnake(){
     x = [];
     y = [];
@@ -433,6 +442,7 @@ var prevCd = null;
 function drawCanvas(){
     ctx.clearRect(0, 0, AREA_WIDTH_PX, AREA_HEIGHT_PX);
     paintGrid();
+    paintBackground();
 
     var scaledImageSize = POINT_SIZE;
 
@@ -548,7 +558,7 @@ function getCoordinateDirection(index){;
 }
 
 function gameOver() {
-    ctx.fillStyle = 'yellow';
+    ctx.fillStyle = '#222222';
     ctx.textBaseline = 'middle'; 
     ctx.textAlign = 'center'; 
     ctx.font = 'normal bold 2em Verdana';
