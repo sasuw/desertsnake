@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Desert Snake</title>    
+        <style>
+            canvas {background: black}
+        </style>
+
+        <script src="js/ext/Tone.js"></script>
+        <script src="js/tonemapper.js"></script>
+        <script src="js/main.js"></script>
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Play&display=swap" rel="stylesheet">
+        
+        <style>
+            canvas, table{
+                margin-right: auto;
+                margin-left: auto;
+                display: block;
+            }
+
+            .center{
+                margin-right: auto;
+                margin-left: auto;
+                display: table;
+            }
+
+            body{
+                font-family: 'Play', sans-serif;
+                background-color: #04baed;
+                /*color: #1902ed;*/
+                color: #eeeeee;
+            }
+            #debugTable{
+                display: none;
+                font-family: monospace;
+            }
+
+            table {
+                border-collapse: collapse;
+                display: table;
+            }
+            table td, table th {
+                border: 1px solid black;
+                text-align: left;
+                padding: 5px;
+            }
+
+            #titleTable{
+                color: orange;
+            }
+
+            #titleTable, #scoreTable, #scoreTable td, #scoreTable th, #titleTable td, #titleTable th{
+                border: 0;
+            }
+
+            #scoreTable{
+                font-size: 22px;
+            }
+
+            .scoreValue{
+                text-align: center;    
+            }
+        </style>
+    </head>
+        
+    <body onload="init();">
+        <table id="titleTable">
+            <th rowspan="2" style="font-size: 60px;">Desert Snake</th>
+        </table>
+        <table id="scoreTable">
+            <tr>
+                <th>Score</th>
+                <th>Round</th>
+                <th>Food to catch</th>
+            </tr>
+            <tr>
+                <td id="score" class="scoreValue">&nbsp;</td>
+                <td id="round" class="scoreValue">&nbsp;</td>
+                <td id="ftc" class="scoreValue">&nbsp;</td>
+            </tr>
+        </table>
+        <br>
+        <canvas id="myCanvas" width="400" height="400">
+        </canvas>
+        <br>
+        <div class="center" style="font-size: 30px;">
+            Press ENTER to play<br>
+            Controls: &#9664; &#9654;
+        </div>
+        
+        <button id="playBtn" style="display: none;">Play</button>
+    
+        <br><br>
+        <table id="debugTable">
+            <tr>
+                <th>Object</th>
+                <th>X</th>
+                <th>Y</th>
+            </tr>
+            <tr>
+                <td>Snake head</td>
+                <td id="shx">&nbsp;</td>
+                <td id="shy">&nbsp;</td>
+            </tr>
+            <tr>
+                <td>Food</td>
+                <td id="fx">&nbsp;</td>
+                <td id="fy">&nbsp;</td>
+            </tr>
+        </table>
+    </body>
+</html>
