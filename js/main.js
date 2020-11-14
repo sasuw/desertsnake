@@ -25,12 +25,14 @@ const SOUND_LENGTH_MS = movementEveryNLoops * LOOP_DELAY / 1000 * 4;
 var x = new Array(AREA_WIDTH);
 var y = new Array(AREA_HEIGHT);
 
-//canvas and canvas context
+//canvas and canvas context for gameplay
 var canvas, ctx;
+//canvas and canvas context for background
+var canvasBg, ctxBg;
 
 var score = 0; //increases with caught food, advanced rounds and passed time, with a multiplier for snake length
 var round = 1;
-var foodToCatchIncrement = 5;
+var foodToCatchIncrement = 1;
 var foodToCatch = foodToCatchIncrement;
 var goingClockwise = null;
 
@@ -74,15 +76,32 @@ function initInfoTable(){
     updateFoodToCatch();
 }
 
+var canvasInitialized = false;
 function initCanvas(){
-    canvas = document.getElementById('myCanvas');
-    ctx = canvas.getContext('2d');
+    try{
+        if(canvasInitialized){
+            return;
+        }
 
-    canvas.width = AREA_WIDTH_PX;
-    canvas.height = AREA_HEIGHT_PX;
+        canvas = document.getElementById('gamePlay');
+        ctx = canvas.getContext('2d');
 
-    paintGrid();
-    paintBackground();
+        canvas.width = AREA_WIDTH_PX;
+        canvas.height = AREA_HEIGHT_PX;
+
+        canvasBg = document.getElementById('background');
+        ctxBg = canvasBg.getContext('2d');
+
+        canvasBg.width = AREA_WIDTH_PX;
+        canvasBg.height = AREA_HEIGHT_PX;
+
+        paintGrid();
+        paintBackground();
+
+        canvasInitialized = true;
+    }catch(error){
+        console.error('initCanvas error: ' + error);
+    }
 }
 
 function paintBackground(){
@@ -90,9 +109,14 @@ function paintBackground(){
         let bg = new Image();
         bg.src = 'img/hintergrund.png'; //Safari cannot handle SVG images here    
 
-        var ptrn = ctx.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
-        ctx.fillStyle = ptrn;
-        ctx.fillRect(0, 0, canvas.width, canvas.height); // context.fillRect(x, y, width, height);
+        bg.onload = function() {
+            var ptrn = ctxBg.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+            ctxBg.fillStyle = ptrn;
+            ctxBg.fillRect(0, 0, canvasBg.width, canvasBg.height); // context.fillRect(x, y, width, height);
+        }
+        bg.onerror = function(error){
+            console.error('bg image error: ' + error);
+        }
     }catch(error){
         console.log('paintBackground ERROR: ' + error);
     }
@@ -176,10 +200,12 @@ function playTones(){
     playTone(mc.x, 5, ToneType.x, 4);
     playTone(9 - mc.y, 3, ToneType.y, 1);
 
-    if(food_x === x[0] && food_y !== y[0] && y[0] % 1 === 0){
+    let everyNthBeat = 2; //setting this to n plays the tone on every nth beat
+    let approximationToneSkipper = POINT_SIZE * everyNthBeat;
+    if(food_x === x[0] && food_y !== y[0] && y[0] % approximationToneSkipper === 0){
         playApproximationTone(y[0], food_y);
     }
-    if(food_y === y[0] && food_x !== x[0] && x[0] % 1 === 0){
+    if(food_y === y[0] && food_x !== x[0] && x[0] % approximationToneSkipper === 0){
         playApproximationTone(x[0], food_x);
     }
 
@@ -284,7 +310,7 @@ function printLoopDebugInfo(){
 var snaketail = [];
 var snakehead = [];
 var snakebody = [];
-var snakefood = [];
+var snakefood;
 
 function loadImages(){
     //Snake tail
@@ -369,6 +395,7 @@ function checkFoodFound(){
 }
 
 function replaceFood(){
+    //TODO: prevent food from landing under snake
     food_x = Math.floor(Math.random() * AREA_WIDTH) * POINT_SIZE;
     food_y = Math.floor(Math.random() * AREA_HEIGHT) * POINT_SIZE;
 }
@@ -458,8 +485,8 @@ var prevCd = null;
 function drawCanvas(){
     try{
         ctx.clearRect(0, 0, AREA_WIDTH_PX, AREA_HEIGHT_PX);
-        paintGrid();
-        paintBackground();
+        //paintGrid();
+        //paintBackground();
 
         var scaledImageSize = POINT_SIZE;
 

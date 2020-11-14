@@ -14,7 +14,30 @@
         <link href="https://fonts.googleapis.com/css2?family=Play&display=swap" rel="stylesheet">
         
         <style>
-            canvas, table{
+            canvas.background{
+                z-index: 1;
+            }
+            canvas.gamePlay{
+                z-index: 2;
+            }
+
+            canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 400px;
+                height: 400px;
+            }
+            .wrapper {
+                margin-right: auto;
+                margin-left: auto;
+                display: table;
+                width: 400px;
+                height: 400px;
+                position: relative;
+            }
+
+            table{
                 margin-right: auto;
                 margin-left: auto;
                 display: block;
@@ -82,8 +105,10 @@
             </tr>
         </table>
         <br>
-        <canvas id="myCanvas" width="400" height="400">
-        </canvas>
+        <div class="wrapper">
+            <canvas id="background" width="400" height="400"></canvas>
+            <canvas id="gamePlay" width="400" height="400"></canvas>
+        </div>
         <br>
         <div class="center" style="font-size: 30px;">
             Press ENTER to play<br>
