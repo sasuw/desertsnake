@@ -22,8 +22,8 @@ const LOOP_DELAY = 5;
 const SOUND_LENGTH_MS = movementEveryNLoops * LOOP_DELAY / 1000 * 4;
 
 //snake coordinates, where x[0], y[0] is the snake's head position
-var x = [];
-var y = [];
+var x = new Array(AREA_WIDTH);
+var y = new Array(AREA_HEIGHT);
 
 //canvas and canvas context
 var canvas, ctx;
@@ -32,6 +32,7 @@ var score = 0; //increases with caught food, advanced rounds and passed time, wi
 var round = 1;
 var foodToCatchIncrement = 5;
 var foodToCatch = foodToCatchIncrement;
+var goingClockwise = null;
 
 var shxEl, shyEl, fx, fy;
 function init(){
@@ -302,16 +303,16 @@ function loadImages(){
 
     //Snake corner part
     snakebody[Direction.CORNER_NW] = new Image();
-    snakebody[Direction.UP].src = 'img/eckstueck-nw.svg';    
+    snakebody[Direction.CORNER_NW].src = 'img/eckstueck-nw.svg';    
 
     snakebody[Direction.CORNER_NE] = new Image();
-    snakebody[Direction.RIGHT].src = 'img/eckstueck-no.svg';
+    snakebody[Direction.CORNER_NE].src = 'img/eckstueck-no.svg';
 
     snakebody[Direction.CORNER_SE] = new Image();
-    snakebody[Direction.DOWN].src = 'img/eckstueck-so.svg';    
+    snakebody[Direction.CORNER_SE].src = 'img/eckstueck-so.svg';    
 
     snakebody[Direction.CORNER_SW] = new Image();
-    snakebody[Direction.LEFT].src = 'img/eckstueck-sw.svg';
+    snakebody[Direction.CORNER_SW].src = 'img/eckstueck-sw.svg';
     
     //Snake food
     snakefood = new Image();
@@ -406,6 +407,7 @@ onkeydown = function(e) {
         if(currentDirection === 0){
             currentDirection = 4;
         }
+        goingClockwise = true;
     }
 
     if (key === KEY_RIGHT) {
@@ -413,6 +415,7 @@ onkeydown = function(e) {
         if(currentDirection === 5){
             currentDirection = 1;
         }
+        goingClockwise = false;
     }
 
     if (key === KEY_ENTER) {
@@ -426,6 +429,7 @@ onkeydown = function(e) {
     }    
 };
 
+var prevCd = null;
 function drawCanvas(){
     ctx.clearRect(0, 0, AREA_WIDTH_PX, AREA_HEIGHT_PX);
     paintGrid();
@@ -435,12 +439,21 @@ function drawCanvas(){
     if (snakeAlive) {
         ctx.drawImage(snakefood, food_x, food_y, scaledImageSize, scaledImageSize);
 
-        for (var i = 0; i < snakeLength; i++) {
-            let cd = getCoordinateDirection();
+        for (var i = snakeLength - 1; i > -1; i--) {
+            let cd = getCoordinateDirection(i);
+            prevCd = cd;
             if (i === 0) {
                 ctx.drawImage(snakehead[currentDirection], x[i], y[i], scaledImageSize, scaledImageSize);
             } else if (i === (snakeLength -1)) {
-                ctx.drawImage(snaketail[cd], x[i], y[i], scaledImageSize, scaledImageSize);
+                let snakeTailDirection = cd + 2;
+                if(snakeTailDirection > 4){
+                    snakeTailDirection = snakeTailDirection - 4;
+                }
+                let snaketailImg = snaketail[snakeTailDirection];
+                if(snaketailImg == null){
+                    console.log('snaketailImg not found');
+                } 
+                ctx.drawImage(snaketail[snakeTailDirection], x[i], y[i], scaledImageSize, scaledImageSize);
             } else {
                 if (cd > Direction.UNKNOWN){
                     //corner case (literally)
@@ -457,6 +470,7 @@ function drawCanvas(){
     }    
 }
 
+
 /**
  * When given the x/y array index, this function returns either
  * Direction.VERTICAL
@@ -466,7 +480,43 @@ function drawCanvas(){
  * 
  * @param {*} index 
  */
-function getCoordinateDirection(index){
+function getCoordinateDirection(index){;
+    if(index > (x.length - 1)){
+        return currentDirection;
+    }
+    
+    if(index < (snakeLength -1) && index > 0 && index < (x.length - 1) && index < (y.length - 1)){
+        if(x[index + 1] > x[index - 1]){
+            if(y[index + 1] > y[index - 1]){
+                if(!goingClockwise){
+                    return Direction.CORNER_SW;
+                }else{
+                    return Direction.CORNER_NE;
+                }
+            }else if(y[index + 1] < y[index - 1]){
+                if(!goingClockwise){
+                    return Direction.CORNER_SE;
+                }else{
+                    return Direction.CORNER_NW;
+                }
+            }
+        }else if(x[index + 1] < x[index - 1]){
+            if(y[index + 1] > y[index - 1]){
+                if(!goingClockwise){
+                    return Direction.CORNER_NW;
+                }else{
+                    return Direction.CORNER_SE;
+                }
+            }else if(y[index + 1] < y[index - 1]){
+                if(!goingClockwise){
+                    return Direction.CORNER_NE;
+                }else{
+                    return Direction.CORNER_SW;
+                }
+            }
+        }
+    }  
+    
     if(index == 0){
         if(x[1] === x[0]){
             if(y[1] > y[0]){
@@ -494,21 +544,7 @@ function getCoordinateDirection(index){
         }else{
             return Direction.LEFT;
         }
-    }else if(x[index] > x[index - 1]){
-        if(y[index] > y[index - 1]){
-            return Direction.CORNER_NW;
-        }else{
-            return Direction.CORNER_NE;
-        }
-    }else{
-        if(x[index] > x[index - 1]){
-            return Direction.CORNER_SW;
-        }else{
-            return Direction.CORNER_SE;
-        }
     }
-
-
 }
 
 function gameOver() {
