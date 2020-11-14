@@ -16,7 +16,7 @@ const GameStates = {
 };
 var gameState = GameStates.STOPPED;
 
-var movementEveryNLoops = 28;
+var movementEveryNLoops = 24;
 
 const LOOP_DELAY = 5;
 const SOUND_LENGTH_MS = movementEveryNLoops * LOOP_DELAY / 1000 * 4;
@@ -88,7 +88,7 @@ function initCanvas(){
 function paintBackground(){
     try{
         let bg = new Image();
-        bg.src = 'img/hintergrund.png';    
+        bg.src = 'img/hintergrund.png'; //Safari cannot handle SVG images here    
 
         var ptrn = ctx.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
         ctx.fillStyle = ptrn;
