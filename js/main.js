@@ -9,14 +9,8 @@ const AREA_HEIGHT_PX = AREA_HEIGHT * POINT_SIZE;
 
 const POINT_AMOUNT = AREA_WIDTH * AREA_HEIGHT;
 
-const GameStates = {
-    STARTED: 0, 
-    STOPPED: 1,
-    PAUSED: 2
-};
-var gameState = GameStates.STOPPED;
-
-var movementEveryNLoops = 24;
+const MOVEMENT_EVERY_N_LOOPS_DEFAULT = 24;
+var movementEveryNLoops = MOVEMENT_EVERY_N_LOOPS_DEFAULT;
 
 const LOOP_DELAY = 5;
 const SOUND_LENGTH_MS = movementEveryNLoops * LOOP_DELAY / 1000 * 4;
@@ -160,6 +154,9 @@ function initEventHandlers(){
 var toneInitialized = false;
 async function startGame(){
     round = 1;
+    movementEveryNLoops = MOVEMENT_EVERY_N_LOOPS_DEFAULT;
+    ScoreHandler.reset();
+    ScoreHandler.updateScoreDisplay();
     foodToCatchIncrement = 3;
     foodToCatch = foodToCatchIncrement;
 
@@ -169,13 +166,12 @@ async function startGame(){
     }
     round = 1;
     snakeAlive = true;
-    gameState = GameStates.STARTED;
+    GameState.State.start();
     init();
     mainGameLoop();
 }
 
 function pauseGame(){
-    gameState = GameStates.PAUSED;
     synthX.triggerRelease();
     synthY.triggerRelease();
 }
@@ -251,7 +247,7 @@ function playTone(noteNumber, startOctave, toneType, length){
 var snakeAlive = true;
 var loopCounter = 0;
 function mainGameLoop(){
-    if(snakeAlive && gameState === GameStates.STARTED){
+    if(snakeAlive && GameState.State.isStarted()){
         var moveSnakeLocal = function(){
             if(++loopCounter % movementEveryNLoops === 0){
                 //console.log(loopCounter++);
@@ -272,7 +268,7 @@ function mainGameLoop(){
             ScoreHandler.updateScoreDisplay();
         }
         setTimeout(mainGameLoop, LOOP_DELAY);
-    }else if(snakeAlive && gameState === GameStates.PAUSED){
+    }else if(snakeAlive && GameState.State.isPaused()){
         setTimeout(mainGameLoop, 200);
     }
 }
@@ -478,12 +474,14 @@ onkeydown = function(e) {
     }
 
     if (key === KEY_ENTER) {
-        if(gameState === GameStates.STARTED){
+        if(GameState.State.isStarted()){
+            GameState.State.pause();
             pauseGame();
-        }else if(gameState === GameStates.STOPPED){
+        }else if(GameState.State.isStopped()){
+            GameState.State.start();
             startGame();
-        }else if(gameState === GameStates.PAUSED){
-            gameState = GameStates.STARTED;
+        }else if (GameState.State.isPaused()){
+            GameState.State.start();
         }
     }    
 };
@@ -619,7 +617,7 @@ function gameOver() {
     
     ctx.fillText('Game over', AREA_WIDTH_PX/2, AREA_HEIGHT_PX/2);
 
-    gameState = GameStates.STOPPED;
+    GameState.State.stop();
     synthX.triggerRelease();
     synthY.triggerRelease();
     synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'C6'], SOUND_LENGTH_MS);

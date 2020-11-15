@@ -15,5 +15,11 @@ var ScoreHandler = {
     updateScoreDisplay: function(){
         ScoreHandler.totalScore = ScoreHandler.loopScore + ScoreHandler.foodScore + ScoreHandler.roundScore;
         Display.updateScore(ScoreHandler.totalScore);
+    },
+    reset: function(){
+        ScoreHandler.totalScore = 0,
+        ScoreHandler.loopScore = 0,
+        ScoreHandler.foodScore = 0,
+        ScoreHandler.roundScore = 0
     }
 }
