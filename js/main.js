@@ -24,9 +24,6 @@ var canvas, ctx;
 //canvas and canvas context for background
 var canvasBg, ctxBg;
 
-var round = 1;
-var foodToCatchIncrement = 1;
-var foodToCatch = foodToCatchIncrement;
 var goingClockwise = null;
 
 var doPaintGrid = false;
@@ -36,10 +33,10 @@ function init(){
     initCanvas();
 
     loadImages();
-    if(round < 2){
+    if(GameState.Round.number < 2){
         initSnake();
     }
-    replaceFood();
+    GameState.Food.replaceFood();
 
     initEventHandlers();
     initInfoTable();
@@ -54,9 +51,11 @@ function initDebugTable(){
 }
 
 function initNewRound(){
-    round++;
-    foodToCatchIncrement++;
-    foodToCatch = foodToCatchIncrement;
+    GameState.Round.increment();
+
+    GameState.Food.incrementFoodToCatchEachRound();
+    GameState.Food.resetFoodToCatch();
+
     movementEveryNLoops = movementEveryNLoops - 2;
     synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'E6'], SOUND_LENGTH_MS);
     //setTimeout(init, 5000);
@@ -65,8 +64,8 @@ function initNewRound(){
 
 function initInfoTable(){
     ScoreHandler.updateScoreDisplay();
-    updateRounds();
-    updateFoodToCatch();
+    GameState.Round.updateRoundDisplay();
+    GameState.Food.updateFoodToCatchDisplay();
 }
 
 var canvasInitialized = false;
@@ -153,19 +152,17 @@ function initEventHandlers(){
 
 var toneInitialized = false;
 async function startGame(){
-    round = 1;
+    GameState.init();
+
     movementEveryNLoops = MOVEMENT_EVERY_N_LOOPS_DEFAULT;
     ScoreHandler.reset();
     ScoreHandler.updateScoreDisplay();
-    foodToCatchIncrement = 3;
-    foodToCatch = foodToCatchIncrement;
 
     if(!toneInitialized){
         await Tone.start();
         toneInitialized = true;
     }
-    round = 1;
-    snakeAlive = true;
+    GameState.Snake.resurrect();
     GameState.State.start();
     init();
     mainGameLoop();
@@ -196,14 +193,14 @@ function playTones(){
 
     let everyNthBeat = 2; //setting this to n plays the tone on every nth beat
     let approximationToneSkipper = POINT_SIZE * everyNthBeat;
-    if(food_x === x[0] && food_y !== y[0] && y[0] % approximationToneSkipper === 0){
-        playApproximationTone(y[0], food_y);
+    if(GameState.Food.x === x[0] && GameState.Food.y !== y[0] && y[0] % approximationToneSkipper === 0){
+        playApproximationTone(y[0], GameState.Food.y);
     }
-    if(food_y === y[0] && food_x !== x[0] && x[0] % approximationToneSkipper === 0){
-        playApproximationTone(x[0], food_x);
+    if(GameState.Food.y === y[0] && GameState.Food.x !== x[0] && x[0] % approximationToneSkipper === 0){
+        playApproximationTone(x[0], GameState.Food.x);
     }
 
-    if(food_y === y[0] && food_x === x[0]){
+    if(GameState.Food.y === y[0] && GameState.Food.x === x[0]){
         //food found
         synthSpecial.volume.value = 0;
         synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'B5'], SOUND_LENGTH_MS);
@@ -244,41 +241,40 @@ function playTone(noteNumber, startOctave, toneType, length){
     }
 }
 
-var snakeAlive = true;
 var loopCounter = 0;
 function mainGameLoop(){
-    if(snakeAlive && GameState.State.isStarted()){
-        var moveSnakeLocal = function(){
-            if(++loopCounter % movementEveryNLoops === 0){
-                //console.log(loopCounter++);
-                //decoupling movement from key detection guarantees better responsiveness
-                moveSnake();
-                //printLoopDebugInfo();
-                playTones();
-                return true;
+    try{
+        if(GameState.Snake.isAlive() && GameState.State.isStarted()){
+            var moveSnakeLocal = function(){
+                try{
+                    if(++loopCounter % movementEveryNLoops === 0){
+                        //console.log(loopCounter++);
+                        //decoupling movement from key detection guarantees better responsiveness
+                        moveSnake();
+                        //printLoopDebugInfo();
+                        playTones();
+                        return true;
+                    }
+
+                    return false;
+                }catch(error){
+                    console.error('moveSnakeLocal error: ' + error);
+                }
             }
-
-            return false;
+            let stateChanged = checkFoodFound() || checkCollision() || moveSnakeLocal();
+            
+            if(stateChanged){
+                drawCanvas();
+                ScoreHandler.incrementScoreLoop(loopCounter);
+                ScoreHandler.updateScoreDisplay();
+            }
+            setTimeout(mainGameLoop, LOOP_DELAY);
+        }else if(GameState.Snake.isAlive() && GameState.State.isPaused()){
+            setTimeout(mainGameLoop, 200);
         }
-        let stateChanged = checkFoodFound() || checkCollision() || moveSnakeLocal();
-        
-        if(stateChanged){
-            drawCanvas();
-            ScoreHandler.incrementScoreLoop(loopCounter);
-            ScoreHandler.updateScoreDisplay();
-        }
-        setTimeout(mainGameLoop, LOOP_DELAY);
-    }else if(snakeAlive && GameState.State.isPaused()){
-        setTimeout(mainGameLoop, 200);
+    }catch(error){
+        console.error('mainGameLoop ERROR: ' + error);
     }
-}
-
-function updateRounds(){
-    document.getElementById('round').textContent = round;
-}
-
-function updateFoodToCatch(){
-    document.getElementById('ftc').textContent = foodToCatch;
 }
 
 function Coordinates(x, y){
@@ -298,8 +294,8 @@ function getMusicCoordinates(){
 function printLoopDebugInfo(){
     shxEl.textContent = x[0];
     shyEl.textContent = y[0];
-    fx.textContent = food_x;
-    fy.textContent = food_y;
+    fx.textContent = GameState.Food.x;
+    fy.textContent = GameState.Food.y;
 }
 
 //graphical elements
@@ -374,19 +370,17 @@ function initSnake(){
     y[0] = AREA_HEIGHT_PX / 2;
 }
 
-var food_x;
-var food_y;
 /**
  * Returns true if food was found, otherwise false
  */
 function checkFoodFound(){
-    if(food_x === x[0] && food_y === y[0]){
+    if(GameState.Food.x === x[0] && GameState.Food.y === y[0]){
         snakeLength++;
-        replaceFood();
-        foodToCatch--;
+        GameState.Food.replaceFood();
+        GameState.Food.eatFood();
         ScoreHandler.incrementScoreFoodFound();
-        updateFoodToCatch();
-        if(foodToCatch == 0){
+        GameState.Food.updateFoodToCatchDisplay();
+        if(GameState.Food.noFoodLeft()){
             initNewRound();
         }
 
@@ -394,12 +388,6 @@ function checkFoodFound(){
     }
 
     return false;
-}
-
-function replaceFood(){
-    //TODO: prevent food from landing under snake
-    food_x = Math.floor(Math.random() * AREA_WIDTH) * POINT_SIZE;
-    food_y = Math.floor(Math.random() * AREA_HEIGHT) * POINT_SIZE;
 }
 
 const Direction = {
@@ -440,13 +428,16 @@ function moveSnake(){
 function checkCollision(){
     for(var i = 1; i < snakeLength; i++){
         if(x[i] == x[0] && y[i] == y[0]){
-            snakeAlive = false;
+            GameState.Snake.die();
             return true;
         }
     }
 
-    snakeAlive = x[0] >= 0 && x[0] < AREA_WIDTH_PX && y[0] >= 0 && y[0] < AREA_HEIGHT_PX; 
-    return !snakeAlive;
+    let snakeIsStillInsideMap = x[0] >= 0 && x[0] < AREA_WIDTH_PX && y[0] >= 0 && y[0] < AREA_HEIGHT_PX;
+    if(!snakeIsStillInsideMap){
+        GameState.Snake.die();
+    }
+    return !snakeIsStillInsideMap;
 }
 
 const KEY_LEFT = 37;
@@ -495,8 +486,8 @@ function drawCanvas(){
 
         var scaledImageSize = POINT_SIZE;
 
-        if (snakeAlive) {
-            ctx.drawImage(snakefood, food_x, food_y, scaledImageSize, scaledImageSize);
+        if (GameState.Snake.isAlive()) {
+            ctx.drawImage(snakefood, GameState.Food.x, GameState.Food.y, scaledImageSize, scaledImageSize);
 
             for (var i = snakeLength - 1; i > -1; i--) {
                 let cd = getCoordinateDirection(i);
