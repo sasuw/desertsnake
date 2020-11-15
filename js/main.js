@@ -70,7 +70,7 @@ function initNewRound(){
 }
 
 function initInfoTable(){
-    ScoreHandler.updateScoreDisplay();
+    ScoreHandler.init();
     updateRounds();
     updateFoodToCatch();
 }

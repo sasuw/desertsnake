@@ -4,7 +4,7 @@ var ScoreHandler = {
     foodScore: 0,
     roundScore: 0,
     incrementScoreLoop: function(loopCounter){
-        ScoreHandler.loopScore = Math.floor(loopCounter / 100);
+        ScoreHandler.loopScore = Math.floor(loopCounter / 300);
     },
     incrementScoreRound: function(roundNumber){
         ScoreHandler.roundScore = ScoreHandler.roundScore + roundNumber * 2;
@@ -13,7 +13,14 @@ var ScoreHandler = {
         ScoreHandler.foodScore = ScoreHandler.foodScore + 3;
     },
     updateScoreDisplay: function(){
-        ScoreHandler.totalScore = ScoreHandler.loopScore + ScoreHandler.foodScore + ScoreHandler.roundScore;
+        let newTotalScore = ScoreHandler.loopScore + ScoreHandler.foodScore + ScoreHandler.roundScore;
+        if(newTotalScore === ScoreHandler.totalScore){
+            return;
+        }
+        ScoreHandler.totalScore = newTotalScore;
+        Display.updateScore(ScoreHandler.totalScore);
+    },
+    init: function(){
         Display.updateScore(ScoreHandler.totalScore);
     }
 }
