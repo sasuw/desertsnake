@@ -63,7 +63,7 @@ function initNewRound(){
 }
 
 function initInfoTable(){
-    ScoreHandler.updateScoreDisplay();
+    ScoreHandler.init();
     GameState.Round.updateRoundDisplay();
     GameState.Food.updateFoodToCatchDisplay();
 }
