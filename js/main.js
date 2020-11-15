@@ -241,13 +241,13 @@ function playTone(noteNumber, startOctave, toneType, length){
     }
 }
 
-var loopCounter = 0;
 function mainGameLoop(){
     try{
         if(GameState.Snake.isAlive() && GameState.State.isStarted()){
             var moveSnakeLocal = function(){
                 try{
-                    if(++loopCounter % movementEveryNLoops === 0){
+                    //GameState.Loop.incrementCounter();
+                    if(++GameState.Loop.counter % movementEveryNLoops === 0){
                         //console.log(loopCounter++);
                         //decoupling movement from key detection guarantees better responsiveness
                         moveSnake();
@@ -265,7 +265,7 @@ function mainGameLoop(){
             
             if(stateChanged){
                 drawCanvas();
-                ScoreHandler.incrementScoreLoop(loopCounter);
+                ScoreHandler.incrementScoreLoop(GameState.Loop.counter);
                 ScoreHandler.updateScoreDisplay();
             }
             setTimeout(mainGameLoop, LOOP_DELAY);
@@ -362,7 +362,6 @@ function loadImages(){
     snakefood.src = 'img/wurst.svg';
 }
 
-var snakeLength = 3;
 function initSnake(){
     x = [];
     y = [];
@@ -375,7 +374,7 @@ function initSnake(){
  */
 function checkFoodFound(){
     if(GameState.Food.x === x[0] && GameState.Food.y === y[0]){
-        snakeLength++;
+        GameState.Snake.grow();
         GameState.Food.replaceFood();
         GameState.Food.eatFood();
         ScoreHandler.incrementScoreFoodFound();
@@ -426,7 +425,7 @@ function moveSnake(){
 }
 
 function checkCollision(){
-    for(var i = 1; i < snakeLength; i++){
+    for(var i = 1; i < GameState.Snake.length; i++){
         if(x[i] == x[0] && y[i] == y[0]){
             GameState.Snake.die();
             return true;
@@ -489,12 +488,12 @@ function drawCanvas(){
         if (GameState.Snake.isAlive()) {
             ctx.drawImage(snakefood, GameState.Food.x, GameState.Food.y, scaledImageSize, scaledImageSize);
 
-            for (var i = snakeLength - 1; i > -1; i--) {
+            for (var i = GameState.Snake.length - 1; i > -1; i--) {
                 let cd = getCoordinateDirection(i);
                 prevCd = cd;
                 if (i === 0) {
                     ctx.drawImage(snakehead[currentDirection], x[i], y[i], scaledImageSize, scaledImageSize);
-                } else if (i === (snakeLength -1)) {
+                } else if (i === (GameState.Snake.length -1)) {
                     let snakeTailDirection = cd + 2;
                     if(snakeTailDirection > 4){
                         snakeTailDirection = snakeTailDirection - 4;
@@ -538,7 +537,7 @@ function getCoordinateDirection(index){;
         return currentDirection;
     }
     
-    if(index < (snakeLength -1) && index > 0 && index < (x.length - 1) && index < (y.length - 1)){
+    if(index < (GameState.Snake.length -1) && index > 0 && index < (x.length - 1) && index < (y.length - 1)){
         if(x[index + 1] > x[index - 1]){
             if(y[index + 1] > y[index - 1]){
                 if(!goingClockwise){

@@ -61,7 +61,7 @@ var GameState = {
         },
         init: function(){
             GameState.Food.foodToCatchEachRound = GameState.Food.foodToCatchFirstRound;
-            GameState.Food.foodToCatchCurrentRound = GameState.Food.foodToCatchCurrentRound;
+            GameState.Food.foodToCatchCurrentRound = GameState.Food.foodToCatchFirstRound;
             GameState.Food.replaceFood();
         }
     },
@@ -78,6 +78,18 @@ var GameState = {
         },
         init: function(){
             GameState.Snake.resurrect();
+            GameState.Snake.length = GameState.Snake.initialLength;
+        },
+        initialLength: 3,
+        length: 3,
+        grow: function(){
+            GameState.Snake.length++;
+        }
+    },
+    Loop: {
+        counter: 0,
+        incrementCounter: function(){
+            GameState.Loop.counter++;
         }
     }
 };
@@ -92,5 +104,7 @@ GameState.init = function(){
     GameState.Food.init();
 
     GameState.Snake.init();
+
+    GameState.Loop.counter = 0;
 }
 
