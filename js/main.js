@@ -252,19 +252,25 @@ var snakeAlive = true;
 var loopCounter = 0;
 function mainGameLoop(){
     if(snakeAlive && gameState === GameStates.STARTED){
-        checkFoodFound();
-        checkCollision();
+        var moveSnakeLocal = function(){
+            if(++loopCounter % movementEveryNLoops === 0){
+                //console.log(loopCounter++);
+                //decoupling movement from key detection guarantees better responsiveness
+                moveSnake();
+                //printLoopDebugInfo();
+                playTones();
+                return true;
+            }
 
-        if(++loopCounter % movementEveryNLoops === 0){
-            //console.log(loopCounter++);
-            //decoupling movement from key detection guarantees better responsiveness
-            moveSnake();
-            //printLoopDebugInfo();
-            playTones();
+            return false;
         }
-        drawCanvas();
-        ScoreHandler.incrementScoreLoop(loopCounter);
-        ScoreHandler.updateScoreDisplay();
+        let stateChanged = checkFoodFound() || checkCollision() || moveSnakeLocal();
+        
+        if(stateChanged){
+            drawCanvas();
+            ScoreHandler.incrementScoreLoop(loopCounter);
+            ScoreHandler.updateScoreDisplay();
+        }
         setTimeout(mainGameLoop, LOOP_DELAY);
     }else if(snakeAlive && gameState === GameStates.PAUSED){
         setTimeout(mainGameLoop, 200);
@@ -374,6 +380,9 @@ function initSnake(){
 
 var food_x;
 var food_y;
+/**
+ * Returns true if food was found, otherwise false
+ */
 function checkFoodFound(){
     if(food_x === x[0] && food_y === y[0]){
         snakeLength++;
@@ -384,7 +393,11 @@ function checkFoodFound(){
         if(foodToCatch == 0){
             initNewRound();
         }
+
+        return true;
     }
+
+    return false;
 }
 
 function replaceFood(){
@@ -432,11 +445,12 @@ function checkCollision(){
     for(var i = 1; i < snakeLength; i++){
         if(x[i] == x[0] && y[i] == y[0]){
             snakeAlive = false;
-            return;
+            return true;
         }
     }
 
     snakeAlive = x[0] >= 0 && x[0] < AREA_WIDTH_PX && y[0] >= 0 && y[0] < AREA_HEIGHT_PX; 
+    return !snakeAlive;
 }
 
 const KEY_LEFT = 37;
