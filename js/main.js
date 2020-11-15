@@ -30,7 +30,6 @@ var canvas, ctx;
 //canvas and canvas context for background
 var canvasBg, ctxBg;
 
-var score = 0; //increases with caught food, advanced rounds and passed time, with a multiplier for snake length
 var round = 1;
 var foodToCatchIncrement = 1;
 var foodToCatch = foodToCatchIncrement;
@@ -71,7 +70,7 @@ function initNewRound(){
 }
 
 function initInfoTable(){
-    updateScore();
+    ScoreHandler.updateScoreDisplay();
     updateRounds();
     updateFoodToCatch();
 }
@@ -160,7 +159,6 @@ function initEventHandlers(){
 
 var toneInitialized = false;
 async function startGame(){
-    score = 0;
     round = 1;
     foodToCatchIncrement = 3;
     foodToCatch = foodToCatchIncrement;
@@ -259,14 +257,14 @@ function mainGameLoop(){
 
         if(++loopCounter % movementEveryNLoops === 0){
             //console.log(loopCounter++);
-            //decoupling movement from key detection guarantees better responsivness
+            //decoupling movement from key detection guarantees better responsiveness
             moveSnake();
             //printLoopDebugInfo();
             playTones();
         }
         drawCanvas();
-        score = Math.floor((score + loopCounter) / 100);
-        updateScore();
+        ScoreHandler.incrementScoreLoop(loopCounter);
+        ScoreHandler.updateScoreDisplay();
         setTimeout(mainGameLoop, LOOP_DELAY);
     }else if(snakeAlive && gameState === GameStates.PAUSED){
         setTimeout(mainGameLoop, 200);
@@ -279,10 +277,6 @@ function updateRounds(){
 
 function updateFoodToCatch(){
     document.getElementById('ftc').textContent = foodToCatch;
-}
-
-function updateScore(){
-    document.getElementById('score').textContent = score;
 }
 
 function Coordinates(x, y){
@@ -385,9 +379,8 @@ function checkFoodFound(){
         snakeLength++;
         replaceFood();
         foodToCatch--;
-        score = score + 3 * Math.ceil(round / 5);
+        ScoreHandler.incrementScoreFoodFound();
         updateFoodToCatch();
-        updateScore();
         if(foodToCatch == 0){
             initNewRound();
         }
