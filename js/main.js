@@ -26,8 +26,6 @@ var canvasBg, ctxBg;
 
 var goingClockwise = null;
 
-var doPaintGrid = false;
-
 var shxEl, shyEl, fx, fy;
 function init(){
     initCanvas();
@@ -87,7 +85,7 @@ function initCanvas(){
         canvasBg.width = AREA_WIDTH_PX;
         canvasBg.height = AREA_HEIGHT_PX;
 
-        paintGrid();
+        //Display.paintGrid();
         paintBackground();
 
         canvasInitialized = true;
@@ -102,44 +100,15 @@ function paintBackground(){
         bg.src = 'img/hintergrund.png'; //Safari cannot handle SVG images here    
 
         bg.onload = function() {
-            var ptrn = ctxBg.createPattern(bg, 'repeat'); // Create a pattern with this image, and set it to "repeat".
+            var ptrn = ctxBg.createPattern(bg, 'repeat');
             ctxBg.fillStyle = ptrn;
-            ctxBg.fillRect(0, 0, canvasBg.width, canvasBg.height); // context.fillRect(x, y, width, height);
+            ctxBg.fillRect(0, 0, canvasBg.width, canvasBg.height);
         }
         bg.onerror = function(error){
             console.error('bg image error: ' + error);
         }
     }catch(error){
         console.log('paintBackground ERROR: ' + error);
-    }
-}
-
-function paintGrid(){
-    try{
-        if(!doPaintGrid){
-            return;
-        }
-
-        let i;
-        for(i = 1; i < 9; i++){
-            ctx.beginPath();
-            let lineX = AREA_WIDTH_PX / 8 * i;
-            ctx.moveTo(lineX, 0);
-            ctx.lineTo(lineX, AREA_HEIGHT_PX);
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.stroke();
-        }
-
-        for(i = 1; i < 9; i++){
-            ctx.beginPath();
-            let lineY = AREA_HEIGHT_PX / 8 * i;
-            ctx.moveTo(0, lineY);
-            ctx.lineTo(AREA_WIDTH_PX, lineY);
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.stroke();
-        }
-    }catch(error){
-        console.log('paintGrid ERROR: ' + error);
     }
 }
 
@@ -173,8 +142,6 @@ function pauseGame(){
     synthY.triggerRelease();
 }
 
-//const synth = new Tone.Synth().toMaster();
-//const synth = new Tone.PolySynth(Tone.Synth).toDestination();
 const synthX = new Tone.AMSynth().toDestination();
 const synthY = new Tone.AMSynth().toDestination();
 const synthSpecial = new Tone.MetalSynth().toDestination();
@@ -480,8 +447,6 @@ var prevCd = null;
 function drawCanvas(){
     try{
         ctx.clearRect(0, 0, AREA_WIDTH_PX, AREA_HEIGHT_PX);
-        //paintGrid();
-        //paintBackground();
 
         var scaledImageSize = POINT_SIZE;
 
@@ -600,12 +565,7 @@ function getCoordinateDirection(index){;
 }
 
 function gameOver() {
-    ctx.fillStyle = '#222222';
-    ctx.textBaseline = 'middle'; 
-    ctx.textAlign = 'center'; 
-    ctx.font = 'normal bold 2em Verdana';
-    
-    ctx.fillText('Game over', AREA_WIDTH_PX/2, AREA_HEIGHT_PX/2);
+    Display.showGameOver();
 
     GameState.State.stop();
     synthX.triggerRelease();
