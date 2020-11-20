@@ -1,8 +1,8 @@
 const BASE_POINT_SIZE = 10;
-const POINT_SIZE = 15;
+const POINT_SIZE = 45;
 
-const AREA_WIDTH = 32;
-const AREA_HEIGHT = 32;
+const AREA_WIDTH = 24;
+const AREA_HEIGHT = 24;
 
 const AREA_WIDTH_PX = AREA_WIDTH * POINT_SIZE;
 const AREA_HEIGHT_PX = AREA_HEIGHT * POINT_SIZE;
@@ -14,10 +14,6 @@ var movementEveryNLoops = MOVEMENT_EVERY_N_LOOPS_DEFAULT;
 
 const LOOP_DELAY = 5;
 const SOUND_LENGTH_MS = movementEveryNLoops * LOOP_DELAY / 1000 * 4;
-
-//snake coordinates, where x[0], y[0] is the snake's head position
-var x = new Array(AREA_WIDTH);
-var y = new Array(AREA_HEIGHT);
 
 //canvas and canvas context for gameplay
 var canvas, ctx;
@@ -32,7 +28,8 @@ function init(){
 
     loadImages();
     if(GameState.Round.number < 2){
-        initSnake();
+        //initSnake();
+        GameState.Snake.init();
     }
     GameState.Food.replaceFood();
 
@@ -160,14 +157,14 @@ function playTones(){
 
     let everyNthBeat = 2; //setting this to n plays the tone on every nth beat
     let approximationToneSkipper = POINT_SIZE * everyNthBeat;
-    if(GameState.Food.x === x[0] && GameState.Food.y !== y[0] && y[0] % approximationToneSkipper === 0){
-        playApproximationTone(y[0], GameState.Food.y);
+    if(GameState.Food.x === GameState.Snake.x[0] && GameState.Food.y !== GameState.Snake.y[0] && GameState.Snake.y[0] % approximationToneSkipper === 0){
+        playApproximationTone(GameState.Snake.y[0], GameState.Food.y);
     }
-    if(GameState.Food.y === y[0] && GameState.Food.x !== x[0] && x[0] % approximationToneSkipper === 0){
-        playApproximationTone(x[0], GameState.Food.x);
+    if(GameState.Food.y === GameState.Snake.y[0] && GameState.Food.x !== GameState.Snake.x[0] && GameState.Snake.x[0] % approximationToneSkipper === 0){
+        playApproximationTone(GameState.Snake.x[0], GameState.Food.x);
     }
 
-    if(GameState.Food.y === y[0] && GameState.Food.x === x[0]){
+    if(GameState.Food.y === GameState.Snake.y[0] && GameState.Food.x === GameState.Snake.x[0]){
         //food found
         synthSpecial.volume.value = 0;
         synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'B5'], SOUND_LENGTH_MS);
@@ -177,7 +174,7 @@ function playTones(){
 function playApproximationTone(axisSnakeCoordinate, axisFoodCoordinate, ){
     try{
         let foodDistance = Math.abs(axisSnakeCoordinate - axisFoodCoordinate);
-        //console.log('x: ' + x[0] + ', foodDistance: ' + foodDistance);
+        //console.log('x: ' + GameState.Snake.x[0] + ', foodDistance: ' + foodDistance);
         synthSpecial.volume.value = -foodDistance / (AREA_WIDTH_PX / 32);
         //console.log('synthSpecial.volume.value: ' + synthSpecial.volume.value);
         synthSpecial.triggerAttackRelease('C3', SOUND_LENGTH_MS * 2);
@@ -213,8 +210,8 @@ function mainGameLoop(){
         if(GameState.Snake.isAlive() && GameState.State.isStarted()){
             var moveSnakeLocal = function(){
                 try{
-                    //GameState.Loop.incrementCounter();
-                    if(++GameState.Loop.counter % movementEveryNLoops === 0){
+                    GameState.Loop.incrementCounter();
+                    if(GameState.Loop.counter % movementEveryNLoops === 0){
                         //console.log(loopCounter++);
                         //decoupling movement from key detection guarantees better responsiveness
                         moveSnake();
@@ -253,14 +250,14 @@ Coordinates.prototype.toString = function(){
     return 'x: ' + this.x + ', y: ' + this.y;
 }
 function getMusicCoordinates(){
-    var mcx = Math.floor(x[0] / AREA_WIDTH_PX * 8) + 1;
-    var mcy = Math.floor(y[0] / AREA_HEIGHT_PX * 8 + 1);
+    var mcx = Math.floor(GameState.Snake.x[0] / AREA_WIDTH_PX * 8) + 1;
+    var mcy = Math.floor(GameState.Snake.y[0] / AREA_HEIGHT_PX * 8 + 1);
     return new Coordinates(mcx, mcy);
 }
 
 function printLoopDebugInfo(){
-    shxEl.textContent = x[0];
-    shyEl.textContent = y[0];
+    shxEl.textContent = GameState.Snake.x[0];
+    shyEl.textContent = GameState.Snake.y[0];
     fx.textContent = GameState.Food.x;
     fy.textContent = GameState.Food.y;
 }
@@ -329,18 +326,11 @@ function loadImages(){
     snakefood.src = 'img/wurst.svg';
 }
 
-function initSnake(){
-    x = [];
-    y = [];
-    x[0] = AREA_WIDTH_PX / 2;
-    y[0] = AREA_HEIGHT_PX / 2;
-}
-
 /**
  * Returns true if food was found, otherwise false
  */
 function checkFoodFound(){
-    if(GameState.Food.x === x[0] && GameState.Food.y === y[0]){
+    if(GameState.Food.x === GameState.Snake.x[0] && GameState.Food.y === GameState.Snake.y[0]){
         GameState.Snake.grow();
         GameState.Food.replaceFood();
         GameState.Food.eatFood();
@@ -372,34 +362,34 @@ const Direction = {
 
 var currentDirection = Direction.DOWN;
 function moveSnake(){
-    x.unshift(x[0]);
-    y.unshift(y[0]);
+    GameState.Snake.x.unshift(GameState.Snake.x[0]);
+    GameState.Snake.y.unshift(GameState.Snake.y[0]);
 
     switch(currentDirection){
         case Direction.DOWN:
-            y[0] = y[0] + POINT_SIZE;
+            GameState.Snake.y[0] = GameState.Snake.y[0] + POINT_SIZE;
             break;
         case Direction.UP:
-            y[0] = y[0] - POINT_SIZE;
+            GameState.Snake.y[0] = GameState.Snake.y[0] - POINT_SIZE;
             break;
         case Direction.LEFT:
-            x[0] = x[0] - POINT_SIZE;
+            GameState.Snake.x[0] = GameState.Snake.x[0] - POINT_SIZE;
             break;
         case Direction.RIGHT:
-            x[0] = x[0] + POINT_SIZE;
+            GameState.Snake.x[0] = GameState.Snake.x[0] + POINT_SIZE;
             break;
     }
 }
 
 function checkCollision(){
     for(var i = 1; i < GameState.Snake.length; i++){
-        if(x[i] == x[0] && y[i] == y[0]){
+        if(GameState.Snake.x[i] == GameState.Snake.x[0] && GameState.Snake.y[i] == GameState.Snake.y[0]){
             GameState.Snake.die();
             return true;
         }
     }
 
-    let snakeIsStillInsideMap = x[0] >= 0 && x[0] < AREA_WIDTH_PX && y[0] >= 0 && y[0] < AREA_HEIGHT_PX;
+    let snakeIsStillInsideMap = GameState.Snake.x[0] >= 0 && GameState.Snake.x[0] < AREA_WIDTH_PX && GameState.Snake.y[0] >= 0 && GameState.Snake.y[0] < AREA_HEIGHT_PX;
     if(!snakeIsStillInsideMap){
         GameState.Snake.die();
     }
@@ -407,7 +397,9 @@ function checkCollision(){
 }
 
 const KEY_LEFT = 37;
+const KEY_UP = 38;
 const KEY_RIGHT = 39;
+const KEY_DOWN = 40;
 const KEY_ENTER = 13;
 
 onkeydown = function(e) {
@@ -457,7 +449,7 @@ function drawCanvas(){
                 let cd = getCoordinateDirection(i);
                 prevCd = cd;
                 if (i === 0) {
-                    ctx.drawImage(snakehead[currentDirection], x[i], y[i], scaledImageSize, scaledImageSize);
+                    ctx.drawImage(snakehead[currentDirection], GameState.Snake.x[i], GameState.Snake.y[i], scaledImageSize, scaledImageSize);
                 } else if (i === (GameState.Snake.length -1)) {
                     let snakeTailDirection = cd + 2;
                     if(snakeTailDirection > 4){
@@ -467,15 +459,15 @@ function drawCanvas(){
                     if(snaketailImg == null){
                         console.log('snaketailImg not found');
                     } 
-                    ctx.drawImage(snaketail[snakeTailDirection], x[i], y[i], scaledImageSize, scaledImageSize);
+                    ctx.drawImage(snaketail[snakeTailDirection], GameState.Snake.x[i], GameState.Snake.y[i], scaledImageSize, scaledImageSize);
                 } else {
                     if (cd > Direction.UNKNOWN){
                         //corner case (literally)
-                        ctx.drawImage(snakebody[cd], x[i], y[i], scaledImageSize, scaledImageSize);
+                        ctx.drawImage(snakebody[cd], GameState.Snake.x[i], GameState.Snake.y[i], scaledImageSize, scaledImageSize);
                     }else if(cd === Direction.UP || cd === Direction.DOWN){
-                        ctx.drawImage(snakebody[Direction.UP], x[i], y[i], scaledImageSize, scaledImageSize);
+                        ctx.drawImage(snakebody[Direction.UP], GameState.Snake.x[i], GameState.Snake.y[i], scaledImageSize, scaledImageSize);
                     }else{
-                        ctx.drawImage(snakebody[Direction.RIGHT], x[i], y[i], scaledImageSize, scaledImageSize);
+                        ctx.drawImage(snakebody[Direction.RIGHT], GameState.Snake.x[i], GameState.Snake.y[i], scaledImageSize, scaledImageSize);
                     }
                 }
             }    
@@ -498,33 +490,33 @@ function drawCanvas(){
  * @param {*} index 
  */
 function getCoordinateDirection(index){;
-    if(index > (x.length - 1)){
+    if(index > (GameState.Snake.x.length - 1)){
         return currentDirection;
     }
     
-    if(index < (GameState.Snake.length -1) && index > 0 && index < (x.length - 1) && index < (y.length - 1)){
-        if(x[index + 1] > x[index - 1]){
-            if(y[index + 1] > y[index - 1]){
+    if(index < (GameState.Snake.length -1) && index > 0 && index < (GameState.Snake.x.length - 1) && index < (GameState.Snake.y.length - 1)){
+        if(GameState.Snake.x[index + 1] > GameState.Snake.x[index - 1]){
+            if(GameState.Snake.y[index + 1] > GameState.Snake.y[index - 1]){
                 if(!goingClockwise){
                     return Direction.CORNER_SW;
                 }else{
                     return Direction.CORNER_NE;
                 }
-            }else if(y[index + 1] < y[index - 1]){
+            }else if(GameState.Snake.y[index + 1] < GameState.Snake.y[index - 1]){
                 if(!goingClockwise){
                     return Direction.CORNER_SE;
                 }else{
                     return Direction.CORNER_NW;
                 }
             }
-        }else if(x[index + 1] < x[index - 1]){
-            if(y[index + 1] > y[index - 1]){
+        }else if(GameState.Snake.x[index + 1] < GameState.Snake.x[index - 1]){
+            if(GameState.Snake.y[index + 1] > GameState.Snake.y[index - 1]){
                 if(!goingClockwise){
                     return Direction.CORNER_NW;
                 }else{
                     return Direction.CORNER_SE;
                 }
-            }else if(y[index + 1] < y[index - 1]){
+            }else if(GameState.Snake.y[index + 1] < GameState.Snake.y[index - 1]){
                 if(!goingClockwise){
                     return Direction.CORNER_NE;
                 }else{
@@ -535,28 +527,28 @@ function getCoordinateDirection(index){;
     }  
     
     if(index == 0){
-        if(x[1] === x[0]){
-            if(y[1] > y[0]){
+        if(GameState.Snake.x[1] === GameState.Snake.x[0]){
+            if(GameState.Snake.y[1] > GameState.Snake.y[0]){
                 return Direction.DOWN;
             }else{
                 return Direction.UP;
             }
         }else{
-            if(x[1] > x[0]){
+            if(GameState.Snake.x[1] > GameState.Snake.x[0]){
                 return Direction.RIGHT;
             }else{
                 return Direction.LEFT;
             }
         }
     }
-    if(x[index] === x[index - 1]){
-        if(y[index] > y[index - 1]){
+    if(GameState.Snake.x[index] === GameState.Snake.x[index - 1]){
+        if(GameState.Snake.y[index] > GameState.Snake.y[index - 1]){
             return Direction.DOWN;
         }else{
             return Direction.UP;
         }
-    }else if(y[index] === y[index - 1]){
-        if(x[index] > x[index - 1]){
+    }else if(GameState.Snake.y[index] === GameState.Snake.y[index - 1]){
+        if(GameState.Snake.x[index] > GameState.Snake.x[index - 1]){
             return Direction.RIGHT;
         }else{
             return Direction.LEFT;

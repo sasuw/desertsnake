@@ -15,7 +15,7 @@ var Display = {
         ctx.fillStyle = 'green';
         ctx.textBaseline = 'middle'; 
         ctx.textAlign = 'center'; 
-        ctx.font = 'bold 4em sans-serif';
+        ctx.font = 'bold ' + (POINT_SIZE * 3) + 'px sans-serif';
         
         ctx.fillText('Game over', AREA_WIDTH_PX/2, AREA_HEIGHT_PX/2);
     },

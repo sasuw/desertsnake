@@ -49,3 +49,11 @@ ToneMapper.map = function(number, startOctave){
     var note = tone + octave;
     return note;
 };
+
+/**
+    x = 1 - 8
+    y = 1 - 8
+*/
+ToneMapper.getChordForSquare = function(x, y){
+    
+};

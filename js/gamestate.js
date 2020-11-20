@@ -66,6 +66,8 @@ var GameState = {
         }
     },
     Snake: {
+        x: [], //head x
+        y: [], //head y
         alive: true,
         die: function(){
             GameState.Snake.alive = false;
@@ -79,6 +81,8 @@ var GameState = {
         init: function(){
             GameState.Snake.resurrect();
             GameState.Snake.length = GameState.Snake.initialLength;
+            GameState.Snake.x[0] = AREA_WIDTH_PX / 2;
+            GameState.Snake.y[0] = AREA_HEIGHT_PX / 2;
         },
         initialLength: 3,
         length: 3,
