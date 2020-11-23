@@ -4,12 +4,10 @@ Globals = {
 
 var Backend = {
     fetchAjaxOptions: {
-        method: 'POST',
         mode: 'cors', // no-cors, *cors, same-origin
         cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
         credentials: 'same-origin', // include, *same-origin, omit
         headers: {
-            'Content-Type': 'text/plain',
             'X-Requested-With': 'XMLHttpRequest'
         },
         redirect: 'follow', // manual, *follow, error
@@ -44,7 +42,6 @@ var Backend = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
                 "score": score,
