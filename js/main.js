@@ -31,11 +31,16 @@ function init(){
         //initSnake();
         GameState.Snake.init();
     }
-    GameState.Food.replaceFood();
 
     initEventHandlers();
     initInfoTable();
     initDebugTable();
+
+    /*
+    GameState.Snake.resurrect();
+    GameState.Food.replaceFood();
+    drawCanvas();
+    */
 }
 
 function initDebugTable(){
@@ -118,6 +123,7 @@ function initEventHandlers(){
 
 var toneInitialized = false;
 async function startGame(){
+    document.getElementById('highScores').style.zIndex = 0;
     GameState.init();
 
     movementEveryNLoops = MOVEMENT_EVERY_N_LOOPS_DEFAULT;
@@ -423,6 +429,10 @@ onkeydown = function(e) {
     }
 
     if (key === KEY_ENTER) {
+        if(GameState.HighScores.highScoreInputInProgress){
+            return;
+        }
+
         if(GameState.State.isStarted()){
             GameState.State.pause();
             pauseGame();
@@ -557,9 +567,9 @@ function getCoordinateDirection(index){;
 }
 
 function gameOver() {
-    Display.showGameOver();
-
     GameState.State.stop();
+    GameState.HighScores.highScoreInputInProgress = true;
+    Display.showGameOver();
     synthX.triggerRelease();
     synthY.triggerRelease();
     synthSpecialPoly.triggerAttackRelease(['E5', 'G#5', 'C6'], SOUND_LENGTH_MS);

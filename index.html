@@ -8,6 +8,7 @@
 
         <script src="js/ext/Tone.js"></script>
         <script src="js/tonemapper.js"></script>
+        <script defer src="js/backend.js"></script>
         <script defer src="js/display.js"></script>
         <script defer src="js/scoreHandler.js"></script>
         <script defer src="js/gamestate.js"></script>
@@ -15,6 +16,7 @@
         
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Play&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&display=swap" rel="stylesheet">
         
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -25,14 +27,38 @@
         <meta name="theme-color" content="#ff0000">
 
         <style>
-            canvas.background{
-                z-index: 1;
-            }
-            canvas.gamePlay{
-                z-index: 2;
+            #highScores td.hsPos{
+                text-align: right;
+                padding-right: 10px;
+                display: none;
             }
 
-            canvas {
+            #highScores td.hsScore{
+                padding-left: 10px;
+            }
+
+            canvas.background{
+                z-index: 5;
+            }
+            canvas.gamePlay{
+                z-index: 10;
+            }
+            #highScores{
+                z-index: 0;
+            }
+            #highScores p{
+                text-align: center;
+                font-size: 35px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            #highScores table, #highScores tr, #highScores td{
+                text-align: left;
+                font-size: 25px;
+                border: 0;
+                padding: 2px;
+            }
+            canvas, #highScores {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -61,7 +87,12 @@
             }
 
             body{
-                font-family: 'Play', sans-serif;
+                /* 
+                font-family: 'Major Mono Display', monospace;
+                text-transform: lowercase;
+                font-weight: regular;
+                */
+                font-family: 'Play', monospace; 
                 background-color: #04baed;
                 /*color: #1902ed;*/
                 color: #eeeeee;
@@ -117,6 +148,61 @@
         </table>
         <br>
         <div class="wrapper">
+            <div id="highScores">
+                <p id="topXTitle"></p>
+                <table>
+                    <tr>
+                        <td class="hsPos" id="hsPos1">1.</td>
+                        <td id="hsName1">&nbsp;</td>
+                        <td class="hsScore" id="hsScore1">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos2">2.</td>
+                        <td id="hsName2">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore2">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos3">3.</td>
+                        <td id="hsName3">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore3">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos4">4.</td>
+                        <td id="hsName4">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore4">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos5">5.</td>
+                        <td id="hsName5">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore5">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos6">6.</td>
+                        <td id="hsName6">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore6">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos7">7.</td>
+                        <td id="hsName7">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore7">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos8">8.</td>
+                        <td id="hsName8">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore8">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos9">9.</td>
+                        <td id="hsName9">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore9">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td class="hsPos" id="hsPos10">10.</td>
+                        <td id="hsName10">&nbsp;</td>
+                        <td class="hsScore"  id="hsScore10">&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
             <canvas id="background" width="400" height="400"></canvas>
             <canvas id="gamePlay" width="400" height="400"></canvas>
         </div>

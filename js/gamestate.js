@@ -1,35 +1,35 @@
 var GameState = {
     State: {
         States: {
-            STARTED: 0, 
+            STARTED: 0,
             STOPPED: 1,
             PAUSED: 2
         },
-        start: function(){
+        start: function () {
             GameState.State.currentState = GameState.State.States.STARTED;
         },
-        stop: function(){
+        stop: function () {
             GameState.State.currentState = GameState.State.States.STOPPED;
         },
-        pause: function(){
+        pause: function () {
             GameState.State.currentState = GameState.State.States.PAUSED;
         },
-        isStarted: function(){
+        isStarted: function () {
             return GameState.State.currentState === GameState.State.States.STARTED;
         },
-        isStopped: function(){
+        isStopped: function () {
             return GameState.State.currentState === GameState.State.States.STOPPED;
         },
-        isPaused: function(){
+        isPaused: function () {
             return GameState.State.currentState === GameState.State.States.PAUSED;
         }
     },
     Round: {
         number: 1,
-        increment: function(){
+        increment: function () {
             GameState.Round.number++;
         },
-        updateRoundDisplay: function(){
+        updateRoundDisplay: function () {
             Display.updateRound(GameState.Round.number);
         }
     },
@@ -39,27 +39,27 @@ var GameState = {
         foodToCatchCurrentRound: 3,
         x: 1,
         y: 1,
-        replaceFood: function(){
+        replaceFood: function () {
             //TODO: prevent food from landing under snake
             GameState.Food.x = Math.floor(Math.random() * AREA_WIDTH) * POINT_SIZE;
             GameState.Food.y = Math.floor(Math.random() * AREA_HEIGHT) * POINT_SIZE;
         },
-        incrementFoodToCatchEachRound: function(){
+        incrementFoodToCatchEachRound: function () {
             GameState.Food.foodToCatchEachRound++;
         },
-        resetFoodToCatch: function(){
+        resetFoodToCatch: function () {
             GameState.Food.foodToCatchCurrentRound = GameState.Food.foodToCatchEachRound;
         },
-        updateFoodToCatchDisplay: function(){
+        updateFoodToCatchDisplay: function () {
             Display.updateFoodToCatch(GameState.Food.foodToCatchCurrentRound);
         },
-        noFoodLeft: function(){
+        noFoodLeft: function () {
             return (GameState.Food.foodToCatchCurrentRound < 1);
         },
-        eatFood: function(){
+        eatFood: function () {
             GameState.Food.foodToCatchCurrentRound--;
         },
-        init: function(){
+        init: function () {
             GameState.Food.foodToCatchEachRound = GameState.Food.foodToCatchFirstRound;
             GameState.Food.foodToCatchCurrentRound = GameState.Food.foodToCatchFirstRound;
             GameState.Food.replaceFood();
@@ -69,16 +69,16 @@ var GameState = {
         x: [], //head x
         y: [], //head y
         alive: true,
-        die: function(){
+        die: function () {
             GameState.Snake.alive = false;
         },
-        resurrect: function(){
+        resurrect: function () {
             GameState.Snake.alive = true;
         },
-        isAlive: function(){
+        isAlive: function () {
             return GameState.Snake.alive;
         },
-        init: function(){
+        init: function () {
             GameState.Snake.resurrect();
             GameState.Snake.length = GameState.Snake.initialLength;
             GameState.Snake.x[0] = AREA_WIDTH_PX / 2;
@@ -86,21 +86,110 @@ var GameState = {
         },
         initialLength: 3,
         length: 3,
-        grow: function(){
+        grow: function () {
             GameState.Snake.length++;
         }
     },
     Loop: {
         counter: 0,
-        incrementCounter: function(){
+        incrementCounter: function () {
             GameState.Loop.counter++;
+        }
+    },
+    HighScores: {
+        values: [],
+        readFromBackend: function () {
+
+        },
+        getCurrentHighscores: function () {
+
+        },
+        insertNewHighScore: function(newPosition, name, score) {
+            if(GameState.HighScores.values.length < newPosition){
+                console.error('insertNewHighScore impossible position ' + newPosition);
+                return;
+            }
+            GameState.HighScores.values.splice(newPosition, 0, {
+                'name': name,
+                'score': score
+            });
+        },
+        /**
+         * If given score is in top 10, the position in the list is returned,
+         * otherwise null
+         * 
+         * @param int score 
+         */
+        getNewHighScorePosition: function (score) {
+            if (GameState.HighScores.values.length === 0) {
+                return 1;
+            }
+
+            for (i = 0; i < GameState.HighScores.values.length; i++) {
+                if (score > GameState.HighScores.values[i].score) {
+                    return (i + 1);
+                }
+            }
+
+            if (GameState.HighScores.values.length < 10) {
+                return GameState.HighScores.values.length + 1;
+            }
+
+            return null;
+        },
+        highScoreInputInProgress: false,
+        highScoreInputFieldEventListener: null,
+        highScoreInputFunction: function (e) {
+            try {
+                if (e.key === 'Enter') {
+                    var hsNameEl = e.target || e.srcElement;
+
+                    Backend.saveHighScore(ScoreHandler.totalScore, hsNameEl.textContent);
+                    hsNameEl.contentEditable = 'false';
+                }
+            } catch (error) {
+                console.error('highScoreInputFunction error: ' + error);
+            }
+        },
+        saveHighScore: function () {
+            try {
+                if(!GameState.HighScores.highScoreInputInProgress){
+                    return;
+                }
+
+                let newHighScorePos = GameState.HighScores.getNewHighScorePosition(ScoreHandler.totalScore);
+                if (newHighScorePos !== null) {
+                    GameState.HighScores.insertNewHighScore((newHighScorePos - 1), '', ScoreHandler.totalScore);
+                    Display.showHighScores(false);
+
+                    let hsNameEl = document.getElementById('hsName' + newHighScorePos);
+                    let hsScoreEl = document.getElementById('hsScore' + newHighScorePos);
+                    let hsPosEl = document.getElementById('hsPos' + newHighScorePos);
+
+                    hsPosEl.style.display = 'block';
+                    hsNameEl.innerText = '';
+                    hsScoreEl.innerText = ScoreHandler.totalScore.toString();
+
+                    hsNameEl.contentEditable = 'true';
+                    hsNameEl.removeEventListener('keypress', GameState.HighScores.highScoreInputFunction);
+                    hsNameEl.addEventListener('keypress', GameState.HighScores.highScoreInputFunction);
+                    hsNameEl.focus();
+                } else {
+                    Backend.saveHighScore(ScoreHandler.totalScore, '???')
+                }
+            } catch (error) {
+                console.error('saveHighScore error: ' + error);
+            }
+        },
+        enterHighScore: function () {
+
         }
     }
 };
 
 GameState.State.currentState = GameState.State.States.STOPPED;
 
-GameState.init = function(){
+GameState.init = function () {
     GameState.State.currentState = GameState.State.States.STOPPED;
 
     GameState.Round.number = 1;
@@ -110,5 +199,6 @@ GameState.init = function(){
     GameState.Snake.init();
 
     GameState.Loop.counter = 0;
-}
 
+    GameState.HighScores.highScoreInputInProgress = false;
+}
