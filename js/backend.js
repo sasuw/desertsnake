@@ -43,7 +43,8 @@ var Backend = {
         let initOptions = Object.assign({
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
                 "score": score,
