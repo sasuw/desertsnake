@@ -82,7 +82,7 @@ var Display = {
             });
 
             let i = 0;
-            for (i = 0; i < GameState.HighScores.values.length;) {
+            for (i = 0; i < GameState.HighScores.values.length && i < 11;) {
                 let hs = GameState.HighScores.values[i];
 
                 let hsNameEl = document.getElementById('hsName' + (++i));

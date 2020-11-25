@@ -33,9 +33,11 @@ ToneMapper.map = function(number, startOctave){
             break;
         case 6:
             tone = 'C';
+            octave = octave + 1;
             break;
         case 7:
             tone = 'D#';
+            octave = octave + 1; 
             break;
         case 8:
             tone = 'E';
@@ -47,6 +49,7 @@ ToneMapper.map = function(number, startOctave){
     }
 
     var note = tone + octave;
+    //console.log('note: ' + note);
     return note;
 };
 
