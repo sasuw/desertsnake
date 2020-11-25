@@ -141,10 +141,14 @@ var GameState = {
         highScoreInputFieldEventListener: null,
         highScoreInputFunction: function (e) {
             try {
-                if (e.key === 'Enter') {
-                    var hsNameEl = e.target || e.srcElement;
+                let hsNameEl = e.target || e.srcElement;
 
-                    Backend.saveHighScore(ScoreHandler.totalScore, hsNameEl.textContent);
+                if(hsNameEl.textContent.length > 9){
+                    e.preventDefault();
+                }
+
+                if (e.key === 'Enter') {
+                    Backend.saveHighScore(ScoreHandler.totalScore, hsNameEl.textContent.substr(0,10));
                     hsNameEl.contentEditable = 'false';
                 }
             } catch (error) {
