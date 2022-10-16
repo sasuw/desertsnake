@@ -1,4 +1,5 @@
 var GameState = {
+    beforeFirstGame: true,
     State: {
         States: {
             STARTED: 0,
@@ -7,6 +8,7 @@ var GameState = {
         },
         start: function () {
             GameState.State.currentState = GameState.State.States.STARTED;
+            GameState.beforeFirstGame = false;
         },
         stop: function () {
             GameState.State.currentState = GameState.State.States.STOPPED;
@@ -83,12 +85,20 @@ var GameState = {
             GameState.Snake.length = GameState.Snake.initialLength;
             GameState.Snake.x[0] = AREA_WIDTH_PX / 2;
             GameState.Snake.y[0] = AREA_HEIGHT_PX / 2;
+            GameState.Snake.currentDirection = Direction.DOWN;
+
+            let i = 0;
+            for(i = 1; i < GameState.Snake.length; i++){
+                GameState.Snake.x[i] = GameState.Snake.x[0]; 
+                GameState.Snake.y[i] = GameState.Snake.y[i - 1] - POINT_SIZE; //direction: down
+            }
         },
         initialLength: 3,
         length: 3,
         grow: function () {
             GameState.Snake.length++;
-        }
+        },
+        currentDirection: Direction.DOWN
     },
     Loop: {
         counter: 0,

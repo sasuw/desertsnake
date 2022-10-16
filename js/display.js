@@ -52,6 +52,10 @@ var Display = {
         document.getElementById('highScores').style.zIndex = 15;
         Backend.getHighScoresTop10().then(response => {
             try {
+                if(response == null){
+                    console.warn('Backend.getHighScoresTop10: response was null');
+                    return;
+                }
                 if (response.status === 400) {
                     //hmm
                     console.error('400');
@@ -60,17 +64,19 @@ var Display = {
                 } else {
                     response.text().then(data => {
                         try {
-                        let highScoreArr = JSON.parse(data);
-                        GameState.HighScores.values = highScoreArr;
-                        Display.showHighScores(true);
-                    } catch (error) {
-                        console.error('Backend.getHighScoresTop10 fetch success function error: ' + error);
-                    }
+                            let highScoreArr = JSON.parse(data);
+                            GameState.HighScores.values = highScoreArr;
+                            Display.showHighScores(true);
+                        } catch (error) {
+                            console.error('Backend.getHighScoresTop10 fetch success function error: ' + error);
+                        }
                     });
                 }
             } catch (error) {
                 console.error('Backend.getHighScoresTop10 fetch error: ' + error);
             }
+        }, reason => {
+            console.error('Fetch error' + reason); // Error!
         });
         console.log('ready');
     },
@@ -82,7 +88,7 @@ var Display = {
             });
 
             let i = 0;
-            for (i = 0; i < GameState.HighScores.values.length && i < 11;) {
+            for (i = 0; i < GameState.HighScores.values.length && i < 10;) {
                 let hs = GameState.HighScores.values[i];
 
                 let hsNameEl = document.getElementById('hsName' + (++i));

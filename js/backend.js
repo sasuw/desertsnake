@@ -33,8 +33,12 @@ var Backend = {
         let initOptions = Object.assign({
             method: 'GET'
         }, Globals.fetchAjaxOptions);
-        const response = await fetch(url, initOptions);
-        return response; // parses JSON response into native JavaScript objects
+        try{
+            const response = await fetch(url, initOptions);
+            return response; // parses JSON response into native JavaScript objects
+        }catch(error){
+            console.warn('Reading highscores not possible: ' + error);
+        }
     },
     saveHighScore: async function (score, name) {
         let url = Backend.getBackendHost() + '/highscore';

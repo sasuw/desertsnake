@@ -1,18 +1,21 @@
 <!-- ABOUT THE PROJECT -->
 # About Desert Snake
 
-Desert Snake is an online JavaScript/HTML 5 game. Try it out at https://snake.sasu.net
+Desert Snake is a JavaScript/HTML 5 game. The game is currently not online.
 
 ![Desert Snake screenshot](https://raw.githubusercontent.com/sasuw/desertsnake/master/Desert-Snake-Screenshot-34ca217acef47736275061c0098abf8b113bd63f.png)
 
 
 ## Why?
 
-My employer organized a Hackathon, where I had the opportunity to create something unrelated to work, so I decided to put together a Snake game with sound effects indicating the snake's current position (so that the game can also be played by visually impaired or without looking at the screen).
+My employer organized a Hackathon in 2020, where I had the opportunity to create something unrelated to work, so I decided to put together a Snake game with sound effects indicating the snake's current position (so that the game can also be played by visually impaired or without looking at the screen).
 
 ## Current state
 
-The game works more or less currently. If you encounter a bug or have an improvement suggestion, open an issue.
+The game works more or less currently, but there are some bugs, e.g.
+- very slow in Firefox for some reason
+- sound-related errors in JS console
+- highscores are too easy to hack
 
 ## Goals
 
@@ -37,7 +40,11 @@ Just open index.html in your browser. To start a local web server, you can for e
 
     python3 -m http.server
 
-in the project root directory.
+or
+
+    npx serve -l tcp://localhost:8000
+
+in the project root directory. For the highscore feature to work you need to start the separate highscore-server, see https://github.com/sasuw/desertsnake-server
 
 # Miscellaneous
 
